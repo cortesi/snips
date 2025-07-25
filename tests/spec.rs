@@ -191,3 +191,34 @@ fn idempotent_processing() {
     let second = fs::read_to_string(&md_path).unwrap();
     assert_eq!(first, second);
 }
+
+#[test]
+fn multiple_markers_idempotent() {
+    let dir = tempfile::tempdir().unwrap();
+    let code1 = dir.path().join("a.rs");
+    let code2 = dir.path().join("b.rs");
+    fs::write(&code1, "fn a(){}\n").unwrap();
+    fs::write(&code2, "fn b(){}\n").unwrap();
+    let md_path = dir.path().join("doc.md");
+    let mut f = File::create(&md_path).unwrap();
+    writeln!(f, "<!-- snips: a.rs -->").unwrap();
+    writeln!(f, "```").unwrap();
+    writeln!(f, "old").unwrap();
+    writeln!(f, "```").unwrap();
+    writeln!(f, "").unwrap();
+    writeln!(f, "<!-- snips: b.rs -->").unwrap();
+    writeln!(f, "```").unwrap();
+    writeln!(f, "old").unwrap();
+    writeln!(f, "```").unwrap();
+    drop(f);
+
+    process_file(&md_path, true).unwrap();
+    let first = fs::read_to_string(&md_path).unwrap();
+    assert!(first.contains("fn a(){}"));
+    assert!(first.contains("fn b(){}"));
+
+    let res = process_file(&md_path, true).unwrap();
+    assert!(res.is_none());
+    let second = fs::read_to_string(&md_path).unwrap();
+    assert_eq!(first, second);
+}
