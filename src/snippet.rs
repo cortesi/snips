@@ -33,6 +33,18 @@ static START_RE: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"snips-start:\s*(?P<name>\w+)\s*$").unwrap());
 static END_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"snips-end:\s*(?P<name>\w+)\s*$").unwrap());
 
+fn find_available_snippets(content: &str) -> Vec<String> {
+    let mut snippets = Vec::new();
+    for line in content.lines() {
+        if let Some(caps) = START_RE.captures(line) {
+            if let Some(name) = caps.name("name") {
+                snippets.push(name.as_str().to_string());
+            }
+        }
+    }
+    snippets
+}
+
 fn extract_named_snippet(content: &str, name: &str, path: &Path) -> Result<String, SnipsError> {
     let lines = content.lines();
     let mut found = false;
@@ -66,9 +78,16 @@ fn extract_named_snippet(content: &str, name: &str, path: &Path) -> Result<Strin
             name.to_string(),
         ))
     } else {
-        Err(SnipsError::SnippetNotFound(
-            path.to_path_buf(),
-            name.to_string(),
-        ))
+        let available = find_available_snippets(content);
+        let available_display = if available.is_empty() {
+            "none".to_string()
+        } else {
+            available.join(", ")
+        };
+        Err(SnipsError::SnippetNotFound {
+            file: path.to_path_buf(),
+            snippet_name: name.to_string(),
+            available_snippets: available_display,
+        })
     }
 }

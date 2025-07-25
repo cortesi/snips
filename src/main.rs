@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use snips::{Processor, get_snippet_diffs, process_file};
+use snips::{Processor, get_snippet_diffs, process_file, SnipsError};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -37,7 +37,18 @@ fn print_diff(old: &str, new: &str) {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() {
+    if let Err(e) = run() {
+        if let Some(snips_error) = e.downcast_ref::<SnipsError>() {
+            eprintln!("Error: {}", snips_error);
+        } else {
+            eprintln!("Error: {}", e);
+        }
+        std::process::exit(1);
+    }
+}
+
+fn run() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     let files = match &cli.command {

@@ -21,7 +21,7 @@ pub fn process_file(path: &Path, write: bool) -> Result<Option<String>, SnipsErr
     let content =
         fs::read_to_string(path).map_err(|_| SnipsError::FileNotFound(path.to_path_buf()))?;
     let base = path.parent().unwrap_or(Path::new("."));
-    let processed = process_content(&content, base)?;
+    let processed = process_content(&content, base, path)?;
     if write && processed != content {
         fs::write(path, processed.clone())?;
     }
@@ -36,7 +36,7 @@ pub fn get_snippet_diffs(path: &Path) -> Result<Vec<SnippetDiff>, SnipsError> {
     let content =
         fs::read_to_string(path).map_err(|_| SnipsError::FileNotFound(path.to_path_buf()))?;
     let base = path.parent().unwrap_or(Path::new("."));
-    get_content_diffs(&content, base)
+    get_content_diffs(&content, base, path)
 }
 
 pub struct Processor;
@@ -53,7 +53,7 @@ impl Processor {
     }
 }
 
-fn get_content_diffs(content: &str, base: &Path) -> Result<Vec<SnippetDiff>, SnipsError> {
+fn get_content_diffs(content: &str, base: &Path, file_path: &Path) -> Result<Vec<SnippetDiff>, SnipsError> {
     let marker_re = &MARKER_RE;
     let mut diffs = Vec::new();
     let mut lines = content.lines().enumerate();
@@ -62,7 +62,11 @@ fn get_content_diffs(content: &str, base: &Path) -> Result<Vec<SnippetDiff>, Sni
         if line.trim_start().starts_with("<!-- snips:") {
             let caps = marker_re
                 .captures(line)
-                .ok_or(SnipsError::InvalidMarker(idx + 1))?;
+                .ok_or(SnipsError::InvalidMarker {
+                    file: file_path.to_path_buf(),
+                    line: idx + 1,
+                    content: line.to_string(),
+                })?;
             let src_path = caps.name("path").unwrap().as_str();
             let snippet_name = caps.name("name").map(|m| m.as_str().to_string());
 
@@ -103,7 +107,7 @@ fn get_content_diffs(content: &str, base: &Path) -> Result<Vec<SnippetDiff>, Sni
     Ok(diffs)
 }
 
-fn process_content(content: &str, base: &Path) -> Result<String, SnipsError> {
+fn process_content(content: &str, base: &Path, file_path: &Path) -> Result<String, SnipsError> {
     let marker_re = &MARKER_RE;
     let mut out = Vec::new();
     let mut lines = content.lines().enumerate();
@@ -111,7 +115,11 @@ fn process_content(content: &str, base: &Path) -> Result<String, SnipsError> {
         if line.trim_start().starts_with("<!-- snips:") {
             let caps = marker_re
                 .captures(line)
-                .ok_or(SnipsError::InvalidMarker(idx + 1))?;
+                .ok_or(SnipsError::InvalidMarker {
+                    file: file_path.to_path_buf(),
+                    line: idx + 1,
+                    content: line.to_string(),
+                })?;
             let src_path = caps.name("path").unwrap().as_str();
             let snippet_name = caps.name("name").map(|m| m.as_str().to_string());
 
