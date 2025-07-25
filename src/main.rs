@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use log::info;
-use snips::{process_file, Processor};
+use snips::{Processor, process_file};
 use std::path::PathBuf;
 
 #[derive(Parser)]
