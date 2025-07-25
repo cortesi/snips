@@ -49,15 +49,37 @@ fn diff_outputs_changes() {
 }
 
 #[test]
-fn default_file() {
+fn render_requires_files() {
     let dir = tempfile::tempdir().unwrap();
-    let md = make_example(&dir);
+    let _md = make_example(&dir);
     std::env::set_current_dir(&dir).unwrap();
     Command::cargo_bin("snips")
         .unwrap()
         .args(["render"]) // no file args
         .assert()
-        .success();
-    let content = fs::read_to_string(md).unwrap();
-    assert!(content.contains("fn main(){}"));
+        .failure();
+}
+
+#[test]
+fn check_requires_files() {
+    let dir = tempfile::tempdir().unwrap();
+    let _md = make_example(&dir);
+    std::env::set_current_dir(&dir).unwrap();
+    Command::cargo_bin("snips")
+        .unwrap()
+        .args(["check"]) // no file args
+        .assert()
+        .failure();
+}
+
+#[test]
+fn diff_requires_files() {
+    let dir = tempfile::tempdir().unwrap();
+    let _md = make_example(&dir);
+    std::env::set_current_dir(&dir).unwrap();
+    Command::cargo_bin("snips")
+        .unwrap()
+        .args(["diff"]) // no file args
+        .assert()
+        .failure();
 }

@@ -72,15 +72,16 @@ cargo install snips
 
 ## Commands
 
-  * `snips render [FILES]...`
+  * `snips render <FILES>...`
 
-      * Processes files and writes changes directly to disk.
+      * Processes files and writes changes directly to disk. 
 
-  * `snips check [FILES]...`
+  * `snips check <FILES>...`
 
-      * Checks if files are in sync. Exits with a non-zero status code if changes are needed.
+      * Checks if files are in sync. Exits with a non-zero status code if
+        changes are needed. 
 
-  * `snips diff [FILES]...`
+  * `snips diff <FILES>...`
 
       * Shows a colored diff of pending changes without modifying any files.
 

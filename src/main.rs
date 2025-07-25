@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use snips::{Processor, get_snippet_diffs, process_file, SnipsError};
+use snips::{Processor, SnipsError, get_snippet_diffs, process_file};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -18,11 +18,20 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Process files to sync snippets
-    Render { files: Vec<PathBuf> },
+    Render {
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
+    },
     /// Check if files are in sync (exits with error if out of date)
-    Check { files: Vec<PathBuf> },
+    Check {
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
+    },
     /// Show diff of changes
-    Diff { files: Vec<PathBuf> },
+    Diff {
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
+    },
 }
 
 fn print_diff(old: &str, new: &str) {
@@ -53,11 +62,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let files = match &cli.command {
         Commands::Render { files } | Commands::Check { files } | Commands::Diff { files } => {
-            if files.is_empty() {
-                vec![PathBuf::from("README.md")]
-            } else {
-                files.clone()
-            }
+            files.clone()
         }
     };
 
