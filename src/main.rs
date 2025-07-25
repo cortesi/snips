@@ -1,5 +1,4 @@
 use clap::{Parser, Subcommand};
-use log::info;
 use snips::{Processor, process_file};
 use std::path::PathBuf;
 
@@ -51,14 +50,6 @@ fn print_diff(old: &str, new: &str) {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
-    let level = if cli.quiet {
-        "error"
-    } else if cli.verbose > 0 {
-        "debug"
-    } else {
-        "info"
-    };
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or(level)).init();
 
     let files = match &cli.command {
         Commands::Render { files } | Commands::Check { files } | Commands::Diff { files } => {
@@ -74,8 +65,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Render { .. } => {
             for path in &files {
                 match process_file(path, true)? {
-                    Some(_) => info!("updated {}", path.display()),
-                    None => info!("{} up-to-date", path.display()),
+                    Some(_) => {
+                        if !cli.quiet {
+                            println!("updated {}", path.display());
+                        }
+                    },
+                    None => {
+                        if !cli.quiet {
+                            println!("{} up-to-date", path.display());
+                        }
+                    },
                 }
             }
         }
