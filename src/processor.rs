@@ -27,7 +27,7 @@ fn apply_indentation(content: &str, indent: &str) -> String {
                 if line.trim().is_empty() {
                     line.to_string()
                 } else {
-                    format!("{}{}", indent, line)
+                    format!("{indent}{line}")
                 }
             })
             .collect::<Vec<_>>()
@@ -163,19 +163,19 @@ fn process_content(content: &str, base: &Path, file_path: &Path) -> Result<Strin
             };
             let (code, lang) = snippet.read()?;
             let marker = if let Some(name) = &snippet_name {
-                format!("{}<!-- snips: {src_path}#{name} -->", indent)
+                format!("{indent}<!-- snips: {src_path}#{name} -->")
             } else {
-                format!("{}<!-- snips: {src_path} -->", indent)
+                format!("{indent}<!-- snips: {src_path} -->")
             };
             out.push(marker);
             let lang_hint = lang.unwrap_or_default();
             if lang_hint.is_empty() {
-                out.push(format!("{}```", indent));
+                out.push(format!("{indent}```"));
             } else {
-                out.push(format!("{}```{lang_hint}", indent));
+                out.push(format!("{indent}```{lang_hint}"));
             }
             out.push(apply_indentation(&code, indent));
-            out.push(format!("{}```", indent));
+            out.push(format!("{indent}```"));
         } else {
             out.push(line.to_string());
         }

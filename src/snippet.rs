@@ -36,11 +36,10 @@ static END_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"snips-end:\s*(?P<name>\w+
 fn find_available_snippets(content: &str) -> Vec<String> {
     let mut snippets = Vec::new();
     for line in content.lines() {
-        if let Some(caps) = START_RE.captures(line) {
-            if let Some(name) = caps.name("name") {
+        if let Some(caps) = START_RE.captures(line)
+            && let Some(name) = caps.name("name") {
                 snippets.push(name.as_str().to_string());
             }
-        }
     }
     snippets
 }

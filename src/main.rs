@@ -40,9 +40,9 @@ fn print_diff(old: &str, new: &str) {
 fn main() {
     if let Err(e) = run() {
         if let Some(snips_error) = e.downcast_ref::<SnipsError>() {
-            eprintln!("Error: {}", snips_error);
+            eprintln!("Error: {snips_error}");
         } else {
-            eprintln!("Error: {}", e);
+            eprintln!("Error: {e}");
         }
         std::process::exit(1);
     }
