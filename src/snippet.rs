@@ -18,14 +18,16 @@ impl Snippet {
             .path
             .extension()
             .and_then(|s| s.to_str())
-            .map(lang_for_ext);
+            .and_then(|ext| languages::from_extension(ext))
+            .and_then(|lang| lang.codemirror_mode)
+            .map(|mode| mode.to_string());
         if let Some(name) = &self.name {
             Ok((
                 extract_named_snippet(&content, name, &self.path)?,
-                lang.map(|l| l.to_string()),
+                lang,
             ))
         } else {
-            Ok((dedent(&content).to_string(), lang.map(|l| l.to_string())))
+            Ok((dedent(&content).to_string(), lang))
         }
     }
 }
@@ -74,16 +76,3 @@ fn extract_named_snippet(content: &str, name: &str, path: &Path) -> Result<Strin
     }
 }
 
-pub fn lang_for_ext(ext: &str) -> &'static str {
-    match ext {
-        "rs" => "rust",
-        "py" => "python",
-        "js" => "javascript",
-        "ts" => "typescript",
-        "java" => "java",
-        "c" => "c",
-        "cpp" | "cc" | "cxx" => "cpp",
-        "sh" => "bash",
-        _ => "",
-    }
-}

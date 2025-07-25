@@ -51,6 +51,9 @@ handling indentation and language detection.
     sync, making it perfect for CI pipelines.
   * **Language Agnostic**: Works with any programming language that supports
     comments.
+  * **Smart Language Detection**: Automatically detects programming languages
+    using the official [GitHub Linguist language specification](https://github.com/github/linguist),
+    providing accurate CodeMirror syntax highlighting modes.
 
 -----
 
@@ -80,3 +83,12 @@ cargo install snips
   * `snips diff [FILES]...`
 
       * Shows a colored diff of pending changes without modifying any files.
+
+-----
+
+## Related Projects
+
+`snips` uses the [languages](https://github.com/cortesi/languages) library for 
+programming language detection. This library provides access to GitHub's 
+Linguist language specification, ensuring accurate language identification and 
+CodeMirror mode selection for syntax highlighting in your documentation.

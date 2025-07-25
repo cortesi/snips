@@ -19,7 +19,7 @@ struct Cli {
 enum Commands {
     /// Process files to sync snippets
     Render { files: Vec<PathBuf> },
-    /// Check if files are in sync
+    /// Check if files are in sync (exits with error if out of date)
     Check { files: Vec<PathBuf> },
     /// Show diff of changes
     Diff { files: Vec<PathBuf> },
