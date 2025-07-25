@@ -4,7 +4,7 @@ version = "0.0.2"
 edition = "2024"
 
 authors = ["Aldo Cortesi <aldo@corte.si>"]
-description = "Keep code snippets in mardown files in sync"
+description = "Keep code snippets in markdown files in sync"
 license = "MIT"
 repository = "https://github.com/cortesi/snips"
 keywords = ["snippets", "markdown"]
