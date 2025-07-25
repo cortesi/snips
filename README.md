@@ -37,8 +37,8 @@ println!("This is the code I want in my docs!");
 ```
 ````
 
-Run `snips process`, and the tool will inject the source code, automatically
-handling indentation and language detection.
+Run `snips render README.md`, and the tool will inject the source code,
+automatically handling indentation and language detection.
 
 -----
 
