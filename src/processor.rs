@@ -5,6 +5,14 @@ use regex::Regex;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+#[derive(Debug)]
+pub struct SnippetDiff {
+    pub path: String,
+    pub name: Option<String>,
+    pub old_content: String,
+    pub new_content: String,
+}
+
 static MARKER_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"^<!--\s*snips:\s*(?P<path>[^#\s]+)(?:#(?P<name>\w+))?\s*-->\s*$").unwrap()
 });
@@ -24,6 +32,13 @@ pub fn process_file(path: &Path, write: bool) -> Result<Option<String>, SnipsErr
     })
 }
 
+pub fn get_snippet_diffs(path: &Path) -> Result<Vec<SnippetDiff>, SnipsError> {
+    let content =
+        fs::read_to_string(path).map_err(|_| SnipsError::FileNotFound(path.to_path_buf()))?;
+    let base = path.parent().unwrap_or(Path::new("."));
+    get_content_diffs(&content, base)
+}
+
 pub struct Processor;
 
 impl Processor {
@@ -36,6 +51,56 @@ impl Processor {
         }
         Ok(clean)
     }
+}
+
+fn get_content_diffs(content: &str, base: &Path) -> Result<Vec<SnippetDiff>, SnipsError> {
+    let marker_re = &MARKER_RE;
+    let mut diffs = Vec::new();
+    let mut lines = content.lines().enumerate();
+
+    while let Some((idx, line)) = lines.next() {
+        if line.trim_start().starts_with("<!-- snips:") {
+            let caps = marker_re
+                .captures(line)
+                .ok_or(SnipsError::InvalidMarker(idx + 1))?;
+            let src_path = caps.name("path").unwrap().as_str();
+            let snippet_name = caps.name("name").map(|m| m.as_str().to_string());
+
+            let (_, fence_line) = lines.next().ok_or(SnipsError::MissingCodeFence(idx + 1))?;
+            let trimmed = fence_line.trim_start();
+            if !trimmed.starts_with("```") {
+                return Err(SnipsError::MissingCodeFence(idx + 1));
+            }
+            let tick_count = trimmed.chars().take_while(|&c| c == '`').count();
+            let closing = "`".repeat(tick_count);
+
+            let mut old_content_lines = Vec::new();
+            for (_, inner) in lines.by_ref() {
+                if inner.trim() == closing {
+                    break;
+                }
+                old_content_lines.push(inner.to_string());
+            }
+            let old_content = old_content_lines.join("\n");
+
+            let target = base.join(src_path);
+            let snippet = Snippet {
+                path: target,
+                name: snippet_name.clone(),
+            };
+            let (new_content, _) = snippet.read()?;
+
+            if old_content.trim() != new_content.trim() {
+                diffs.push(SnippetDiff {
+                    path: src_path.to_string(),
+                    name: snippet_name,
+                    old_content,
+                    new_content,
+                });
+            }
+        }
+    }
+    Ok(diffs)
 }
 
 fn process_content(content: &str, base: &Path) -> Result<String, SnipsError> {

@@ -29,7 +29,7 @@ fn named_snippet_not_found() {
             assert_eq!(p, code_path);
             assert_eq!(name, "foo");
         }
-        other => panic!("unexpected {:?}", other),
+        other => panic!("unexpected {other:?}"),
     }
 }
 
@@ -70,6 +70,6 @@ fn missing_code_fence() {
     drop(f);
     match process_file(&md_path, false) {
         Err(SnipsError::MissingCodeFence(_)) => (),
-        other => panic!("unexpected {:?}", other),
+        other => panic!("unexpected {other:?}"),
     }
 }

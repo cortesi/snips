@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use snips::{Processor, process_file};
+use snips::{Processor, get_snippet_diffs, process_file};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -26,25 +26,14 @@ enum Commands {
 }
 
 fn print_diff(old: &str, new: &str) {
-    let chunks = dissimilar::diff(old, new);
-    for chunk in chunks {
-        match chunk {
-            dissimilar::Chunk::Equal(text) => {
-                for line in text.lines() {
-                    println!(" {line}");
-                }
-            }
-            dissimilar::Chunk::Delete(text) => {
-                for line in text.lines() {
-                    println!("-{line}");
-                }
-            }
-            dissimilar::Chunk::Insert(text) => {
-                for line in text.lines() {
-                    println!("+{line}");
-                }
-            }
-        }
+    let diff = similar::TextDiff::from_lines(old, new);
+    for change in diff.iter_all_changes() {
+        let sign = match change.tag() {
+            similar::ChangeTag::Delete => "-",
+            similar::ChangeTag::Insert => "+",
+            similar::ChangeTag::Equal => " ",
+        };
+        print!("{sign}{change}");
     }
 }
 
@@ -69,12 +58,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         if !cli.quiet {
                             println!("updated {}", path.display());
                         }
-                    },
+                    }
                     None => {
                         if !cli.quiet {
                             println!("{} up-to-date", path.display());
                         }
-                    },
+                    }
                 }
             }
         }
@@ -86,9 +75,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::Diff { .. } => {
             for path in &files {
-                if let Some(new) = process_file(path, false)? {
-                    let old = std::fs::read_to_string(path)?;
-                    print_diff(&old, &new);
+                let diffs = get_snippet_diffs(path)?;
+                if !diffs.is_empty() {
+                    for diff in diffs {
+                        let name_display = if let Some(name) = &diff.name {
+                            format!("{}#{}", diff.path, name)
+                        } else {
+                            diff.path.clone()
+                        };
+                        println!("--- {name_display}");
+                        println!("+++ {name_display}");
+                        print_diff(&diff.old_content, &diff.new_content);
+                        println!();
+                    }
                 }
             }
         }

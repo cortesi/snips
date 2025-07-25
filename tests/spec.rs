@@ -6,7 +6,7 @@ use std::path::Path;
 // Helper to write a markdown with marker and code fence
 fn write_marker(path: &Path, marker: &str) {
     let mut f = File::create(path).unwrap();
-    writeln!(f, "{}", marker).unwrap();
+    writeln!(f, "{marker}").unwrap();
     writeln!(f, "```").unwrap();
     writeln!(f, "old").unwrap();
     writeln!(f, "```").unwrap();
@@ -15,10 +15,10 @@ fn write_marker(path: &Path, marker: &str) {
 // Helper to write a markdown with trailing spaces on the closing fence
 fn write_marker_trailing(path: &Path, marker: &str, spaces: &str) {
     let mut f = File::create(path).unwrap();
-    writeln!(f, "{}", marker).unwrap();
+    writeln!(f, "{marker}").unwrap();
     writeln!(f, "```").unwrap();
     writeln!(f, "old").unwrap();
-    write!(f, "```{}\n", spaces).unwrap();
+    writeln!(f, "```{spaces}").unwrap();
 }
 
 #[test]
@@ -48,7 +48,7 @@ fn malformed_marker() {
     drop(f);
     match process_file(&md_path, false) {
         Err(SnipsError::InvalidMarker(_)) => (),
-        other => panic!("unexpected {:?}", other),
+        other => panic!("unexpected {other:?}"),
     }
 }
 
@@ -73,7 +73,7 @@ fn unterminated_snippet() {
             assert_eq!(p, code_path);
             assert_eq!(name, "foo");
         }
-        other => panic!("unexpected {:?}", other),
+        other => panic!("unexpected {other:?}"),
     }
 }
 
@@ -89,7 +89,7 @@ fn mismatched_snippet_names() {
             assert_eq!(p, code_path);
             assert_eq!(name, "A".to_string());
         }
-        other => panic!("unexpected {:?}", other),
+        other => panic!("unexpected {other:?}"),
     }
 }
 
@@ -202,7 +202,6 @@ fn idempotent_processing() {
 }
 
 #[test]
-
 fn closing_fence_trailing_spaces() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
@@ -214,6 +213,7 @@ fn closing_fence_trailing_spaces() {
     assert!(content.contains("fn main(){}"));
 }
 
+#[test]
 fn multiple_markers_idempotent() {
     let dir = tempfile::tempdir().unwrap();
     let code1 = dir.path().join("a.rs");
@@ -226,7 +226,7 @@ fn multiple_markers_idempotent() {
     writeln!(f, "```").unwrap();
     writeln!(f, "old").unwrap();
     writeln!(f, "```").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "<!-- snips: b.rs -->").unwrap();
     writeln!(f, "```").unwrap();
     writeln!(f, "old").unwrap();
