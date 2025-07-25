@@ -47,7 +47,7 @@ fn malformed_marker() {
     writeln!(f, "```").unwrap();
     drop(f);
     match process_file(&md_path, false) {
-        Err(SnipsError::InvalidMarker(_)) => (),
+        Err(SnipsError::InvalidMarker { .. }) => (),
         other => panic!("unexpected {other:?}"),
     }
 }
