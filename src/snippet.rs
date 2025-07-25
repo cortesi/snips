@@ -22,10 +22,7 @@ impl Snippet {
             .and_then(|lang| lang.codemirror_mode)
             .map(|mode| mode.to_string());
         if let Some(name) = &self.name {
-            Ok((
-                extract_named_snippet(&content, name, &self.path)?,
-                lang,
-            ))
+            Ok((extract_named_snippet(&content, name, &self.path)?, lang))
         } else {
             Ok((dedent(&content).to_string(), lang))
         }
@@ -75,4 +72,3 @@ fn extract_named_snippet(content: &str, name: &str, path: &Path) -> Result<Strin
         ))
     }
 }
-
