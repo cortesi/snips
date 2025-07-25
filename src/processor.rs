@@ -93,7 +93,7 @@ fn get_content_diffs(
                 line: idx + 1,
                 content: line.to_string(),
             })?;
-            let _indent = caps.name("indent").unwrap().as_str();
+            let indent = caps.name("indent").unwrap().as_str();
             let src_path = caps.name("path").unwrap().as_str();
             let snippet_name = caps.name("name").map(|m| m.as_str().to_string());
 
@@ -121,12 +121,15 @@ fn get_content_diffs(
             };
             let (new_content, _) = snippet.read()?;
 
-            if old_content.trim() != new_content.trim() {
+            // Apply the same indentation to new_content as process_content does
+            let new_content_with_indent = apply_indentation(&new_content, indent);
+
+            if old_content.trim() != new_content_with_indent.trim() {
                 diffs.push(SnippetDiff {
                     path: src_path.to_string(),
                     name: snippet_name,
                     old_content,
-                    new_content,
+                    new_content: new_content_with_indent,
                 });
             }
         }
