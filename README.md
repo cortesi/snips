@@ -1,5 +1,9 @@
 # snips
 
+![Discord](https://img.shields.io/discord/1381424110831145070?style=flat-square&logo=rust&link=https%3A%2F%2Fdiscord.gg%2FfHmRmuBDxF)
+[![Crates.io](https://img.shields.io/crates/v/snips.svg)](https://crates.io/crates/snips)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **Keep your code snippets in sync with your source files. Effortlessly.**
 
 `snips` is a command-line tool that prevents your documentation from becoming
@@ -47,6 +51,13 @@ handling indentation and language detection.
     sync, making it perfect for CI pipelines.
   * **Language Agnostic**: Works with any programming language that supports
     comments.
+
+-----
+
+## Community
+
+Want to contribute? Have ideas or feature requests? Come tell us about it on
+[Discord](https://discord.gg/fHmRmuBDxF).
 
 -----
 
