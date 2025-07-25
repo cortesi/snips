@@ -33,7 +33,7 @@ Markdown files, ensuring your code examples are always up-to-date.
 ````markdown
 <!-- snips: examples/example.rs#main_feature -->
 ```rust
-println!(" This is the code I want in my docs!");
+println!("This is the code I want in my docs!");
 ```
 ````
 
