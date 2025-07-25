@@ -7,9 +7,6 @@ use std::path::PathBuf;
 struct Cli {
     #[command(subcommand)]
     command: Commands,
-    /// Enable verbose logging
-    #[arg(short, long, action = clap::ArgAction::Count)]
-    verbose: u8,
     /// Quiet mode
     #[arg(long, action = clap::ArgAction::SetTrue)]
     quiet: bool,
