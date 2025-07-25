@@ -59,7 +59,7 @@ fn process_content(content: &str, base: &Path) -> Result<String, SnipsError> {
             let closing = "`".repeat(tick_count);
 
             for (_, inner) in lines.by_ref() {
-                if inner.trim_start() == closing {
+                if inner.trim() == closing {
                     break;
                 }
             }

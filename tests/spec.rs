@@ -12,6 +12,15 @@ fn write_marker(path: &Path, marker: &str) {
     writeln!(f, "```").unwrap();
 }
 
+// Helper to write a markdown with trailing spaces on the closing fence
+fn write_marker_trailing(path: &Path, marker: &str, spaces: &str) {
+    let mut f = File::create(path).unwrap();
+    writeln!(f, "{}", marker).unwrap();
+    writeln!(f, "```").unwrap();
+    writeln!(f, "old").unwrap();
+    write!(f, "```{}\n", spaces).unwrap();
+}
+
 #[test]
 fn relative_path_resolution() {
     let dir = tempfile::tempdir().unwrap();
@@ -190,4 +199,16 @@ fn idempotent_processing() {
     assert!(res.is_none());
     let second = fs::read_to_string(&md_path).unwrap();
     assert_eq!(first, second);
+}
+
+#[test]
+fn closing_fence_trailing_spaces() {
+    let dir = tempfile::tempdir().unwrap();
+    let code_path = dir.path().join("code.rs");
+    fs::write(&code_path, "fn main(){}\n").unwrap();
+    let md_path = dir.path().join("doc.md");
+    write_marker_trailing(&md_path, "<!-- snips: code.rs -->", "   ");
+    process_file(&md_path, true).unwrap();
+    let content = fs::read_to_string(&md_path).unwrap();
+    assert!(content.contains("fn main(){}"));
 }
