@@ -1,7 +1,7 @@
 use crate::error::SnipsError;
 use crate::snippet::Snippet;
-use regex::Regex;
 use once_cell::sync::Lazy;
+use regex::Regex;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -10,13 +10,18 @@ static MARKER_RE: Lazy<Regex> = Lazy::new(|| {
 });
 
 pub fn process_file(path: &Path, write: bool) -> Result<Option<String>, SnipsError> {
-    let content = fs::read_to_string(path).map_err(|_| SnipsError::FileNotFound(path.to_path_buf()))?;
+    let content =
+        fs::read_to_string(path).map_err(|_| SnipsError::FileNotFound(path.to_path_buf()))?;
     let base = path.parent().unwrap_or(Path::new("."));
     let processed = process_content(&content, base)?;
     if write && processed != content {
         fs::write(path, processed.clone())?;
     }
-    Ok(if processed != content { Some(processed) } else { None })
+    Ok(if processed != content {
+        Some(processed)
+    } else {
+        None
+    })
 }
 
 pub struct Processor;
@@ -39,7 +44,9 @@ fn process_content(content: &str, base: &Path) -> Result<String, SnipsError> {
     let mut lines = content.lines().enumerate();
     while let Some((idx, line)) = lines.next() {
         if line.trim_start().starts_with("<!-- snips:") {
-            let caps = marker_re.captures(line).ok_or(SnipsError::InvalidMarker(idx + 1))?;
+            let caps = marker_re
+                .captures(line)
+                .ok_or(SnipsError::InvalidMarker(idx + 1))?;
             let src_path = caps.name("path").unwrap().as_str();
             let snippet_name = caps.name("name").map(|m| m.as_str().to_string());
 
@@ -51,25 +58,28 @@ fn process_content(content: &str, base: &Path) -> Result<String, SnipsError> {
             let tick_count = trimmed.chars().take_while(|&c| c == '`').count();
             let closing = "`".repeat(tick_count);
 
-            while let Some((_, inner)) = lines.next() {
+            for (_, inner) in lines.by_ref() {
                 if inner.trim_start() == closing {
                     break;
                 }
             }
             let target = base.join(src_path);
-            let snippet = Snippet { path: target, name: snippet_name.clone() };
+            let snippet = Snippet {
+                path: target,
+                name: snippet_name.clone(),
+            };
             let (code, lang) = snippet.read()?;
             let marker = if let Some(name) = &snippet_name {
-                format!("<!-- snips: {}#{} -->", src_path, name)
+                format!("<!-- snips: {src_path}#{name} -->")
             } else {
-                format!("<!-- snips: {} -->", src_path)
+                format!("<!-- snips: {src_path} -->")
             };
             out.push(marker);
             let lang_hint = lang.unwrap_or_default();
             if lang_hint.is_empty() {
                 out.push("```".to_string());
             } else {
-                out.push(format!("```{}", lang_hint));
+                out.push(format!("```{lang_hint}"));
             }
             out.push(code);
             out.push("```".to_string());

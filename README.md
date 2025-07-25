@@ -29,7 +29,8 @@ Markdown files, ensuring your code examples are always up-to-date.
     ````markdown
     <!-- snips: examples/example.rs#main_feature -->
     ```rust
-    // This code block will be automatically updated.
+    println!("This is the code I want in my docs!");
+    ```
     ````
 
 Run `snips process`, and the tool will inject the source code, automatically
@@ -52,13 +53,12 @@ handling indentation and language detection.
 ## Installation
 
 ```bash
-# Once published, you'll be able to install with:
 cargo install snips
 ```
 
 ## Commands
 
-  * `snips process [FILES]...`
+  * `snips render [FILES]...`
 
       * Processes files and writes changes directly to disk.
 

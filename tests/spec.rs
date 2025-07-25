@@ -100,7 +100,11 @@ fn empty_named_snippet() {
 fn no_indentation() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
-    fs::write(&code_path, "// snips-start: foo\nfn a(){}\n// snips-end: foo\n").unwrap();
+    fs::write(
+        &code_path,
+        "// snips-start: foo\nfn a(){}\n// snips-end: foo\n",
+    )
+    .unwrap();
     let md_path = dir.path().join("doc.md");
     write_marker(&md_path, "<!-- snips: code.rs#foo -->");
     process_file(&md_path, true).unwrap();

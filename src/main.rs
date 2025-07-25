@@ -1,8 +1,7 @@
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
-use snips::{process_file, Processor};
-use env_logger;
 use log::info;
+use snips::{process_file, Processor};
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -20,7 +19,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Process files to sync snippets
-    Gen { files: Vec<PathBuf> },
+    Render { files: Vec<PathBuf> },
     /// Check if files are in sync
     Check { files: Vec<PathBuf> },
     /// Show diff of changes
@@ -31,32 +30,48 @@ fn print_diff(old: &str, new: &str) {
     let chunks = dissimilar::diff(old, new);
     for chunk in chunks {
         match chunk {
-            dissimilar::Chunk::Equal(text) => for line in text.lines() {
-                println!(" {}", line);
-            },
-            dissimilar::Chunk::Delete(text) => for line in text.lines() {
-                println!("-{}", line);
-            },
-            dissimilar::Chunk::Insert(text) => for line in text.lines() {
-                println!("+{}", line);
-            },
+            dissimilar::Chunk::Equal(text) => {
+                for line in text.lines() {
+                    println!(" {line}");
+                }
+            }
+            dissimilar::Chunk::Delete(text) => {
+                for line in text.lines() {
+                    println!("-{line}");
+                }
+            }
+            dissimilar::Chunk::Insert(text) => {
+                for line in text.lines() {
+                    println!("+{line}");
+                }
+            }
         }
     }
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
-    let level = if cli.quiet { "error" } else if cli.verbose > 0 { "debug" } else { "info" };
+    let level = if cli.quiet {
+        "error"
+    } else if cli.verbose > 0 {
+        "debug"
+    } else {
+        "info"
+    };
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or(level)).init();
 
     let files = match &cli.command {
-        Commands::Gen { files } | Commands::Check { files } | Commands::Diff { files } => {
-            if files.is_empty() { vec![PathBuf::from("README.md")] } else { files.clone() }
+        Commands::Render { files } | Commands::Check { files } | Commands::Diff { files } => {
+            if files.is_empty() {
+                vec![PathBuf::from("README.md")]
+            } else {
+                files.clone()
+            }
         }
     };
 
     match cli.command {
-        Commands::Gen { .. } => {
+        Commands::Render { .. } => {
             for path in &files {
                 match process_file(path, true)? {
                     Some(_) => info!("updated {}", path.display()),
@@ -66,7 +81,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::Check { .. } => {
             let clean = Processor::check(&files)?;
-            if !clean { std::process::exit(1); }
+            if !clean {
+                std::process::exit(1);
+            }
         }
         Commands::Diff { .. } => {
             for path in &files {

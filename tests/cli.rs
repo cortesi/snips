@@ -18,15 +18,18 @@ fn make_example(dir: &tempfile::TempDir) -> std::path::PathBuf {
 fn check_fails_on_dirty_file() {
     let dir = tempfile::tempdir().unwrap();
     let md = make_example(&dir);
-    Command::cargo_bin("snips").unwrap()
+    Command::cargo_bin("snips")
+        .unwrap()
         .args(["check", md.to_str().unwrap()])
         .assert()
         .failure();
-    Command::cargo_bin("snips").unwrap()
-        .args(["gen", md.to_str().unwrap()])
+    Command::cargo_bin("snips")
+        .unwrap()
+        .args(["render", md.to_str().unwrap()])
         .assert()
         .success();
-    Command::cargo_bin("snips").unwrap()
+    Command::cargo_bin("snips")
+        .unwrap()
         .args(["check", md.to_str().unwrap()])
         .assert()
         .success();
@@ -36,7 +39,8 @@ fn check_fails_on_dirty_file() {
 fn diff_outputs_changes() {
     let dir = tempfile::tempdir().unwrap();
     let md = make_example(&dir);
-    let output = Command::cargo_bin("snips").unwrap()
+    let output = Command::cargo_bin("snips")
+        .unwrap()
         .args(["diff", md.to_str().unwrap()])
         .output()
         .unwrap();
@@ -49,8 +53,9 @@ fn default_file() {
     let dir = tempfile::tempdir().unwrap();
     let md = make_example(&dir);
     std::env::set_current_dir(&dir).unwrap();
-    Command::cargo_bin("snips").unwrap()
-        .args(["gen"]) // no file args
+    Command::cargo_bin("snips")
+        .unwrap()
+        .args(["render"]) // no file args
         .assert()
         .success();
     let content = fs::read_to_string(md).unwrap();

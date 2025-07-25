@@ -37,7 +37,11 @@ fn named_snippet_not_found() {
 fn dedent_snippet() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
-    fs::write(&code_path, "// snips-start: foo\n    fn a() {\n        println!(\"hi\");\n    }\n// snips-end: foo\n").unwrap();
+    fs::write(
+        &code_path,
+        "// snips-start: foo\n    fn a() {\n        println!(\"hi\");\n    }\n// snips-end: foo\n",
+    )
+    .unwrap();
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "<!-- snips: code.rs#foo -->").unwrap();
@@ -54,7 +58,11 @@ fn dedent_snippet() {
 fn missing_code_fence() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
-    fs::write(&code_path, "// snips-start: foo\nfn a() {}\n// snips-end: foo\n").unwrap();
+    fs::write(
+        &code_path,
+        "// snips-start: foo\nfn a() {}\n// snips-end: foo\n",
+    )
+    .unwrap();
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "<!-- snips: code.rs#foo -->").unwrap();
