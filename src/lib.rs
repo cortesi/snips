@@ -3,4 +3,4 @@ pub mod processor;
 pub mod snippet;
 
 pub use error::SnipsError;
-pub use processor::{process_file, Processor};
+pub use processor::{Processor, process_file};

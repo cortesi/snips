@@ -1,7 +1,14 @@
 [package]
 name = "snips"
-version = "0.1.0"
-edition = "2021"
+version = "0.0.1"
+edition = "2024"
+
+authors = ["Aldo Cortesi <aldo@corte.si>"]
+description = "Keep code snippets in mardown files in sync"
+license = "MIT"
+repository = "https://github.com/cortesi/snips"
+keywords = ["snippets", "markdown"]
+
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }

@@ -1,4 +1,4 @@
-use snips::{process_file, SnipsError};
+use snips::{SnipsError, process_file};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
