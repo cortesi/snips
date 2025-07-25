@@ -30,12 +30,12 @@ Markdown files, ensuring your code examples are always up-to-date.
 2.  **In your Markdown file**, you reference that snippet using an HTML
     comment:
 
-    ````markdown
-    <!-- snips: examples/example.rs#main_feature -->
-    ```rust
-    println!("This is the code I want in my docs!");
-    ```
-    ````
+````markdown
+<!-- snips: examples/example.rs#main_feature -->
+```rust
+println!("This is the code I want in my docs!");
+```
+````
 
 Run `snips process`, and the tool will inject the source code, automatically
 handling indentation and language detection.
