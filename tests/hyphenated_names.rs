@@ -17,8 +17,12 @@ fn write_source_with_hyphenated_snippet(path: &Path, name: &str, content: &str) 
 fn hyphenated_snippet_names() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
-    write_source_with_hyphenated_snippet(&code_path, "my-example", "fn test_hyphen() {\n    println!(\"hyphenated!\");\n}\n");
-    
+    write_source_with_hyphenated_snippet(
+        &code_path,
+        "my-example",
+        "fn test_hyphen() {\n    println!(\"hyphenated!\");\n}\n",
+    );
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "Example with hyphenated name:").unwrap();
@@ -28,10 +32,10 @@ fn hyphenated_snippet_names() {
     writeln!(f, "old content").unwrap();
     writeln!(f, "```").unwrap();
     drop(f);
-    
+
     process_file(&md_path, true).unwrap();
     let content = fs::read_to_string(&md_path).unwrap();
-    
+
     // Verify the snippet was processed correctly
     assert!(content.contains("<!-- snips: code.rs#my-example -->"));
     assert!(content.contains("fn test_hyphen() {"));
@@ -55,7 +59,7 @@ fn mixed_underscore_and_hyphen_names() {
     writeln!(f, "fn mixed_example() {{}}").unwrap();
     writeln!(f, "// snips-end: mixed_style-name").unwrap();
     drop(f);
-    
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "<!-- snips: code.rs#under_score -->").unwrap();
@@ -73,10 +77,10 @@ fn mixed_underscore_and_hyphen_names() {
     writeln!(f, "old").unwrap();
     writeln!(f, "```").unwrap();
     drop(f);
-    
+
     process_file(&md_path, true).unwrap();
     let content = fs::read_to_string(&md_path).unwrap();
-    
+
     // Verify all snippet styles work
     assert!(content.contains("fn underscore_example() {}"));
     assert!(content.contains("fn hyphen_example() {}"));
@@ -88,7 +92,7 @@ fn hyphenated_names_in_indented_blocks() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
     write_source_with_hyphenated_snippet(&code_path, "test-indented", "fn indented_test() {}\n");
-    
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "1. First item").unwrap();
@@ -99,10 +103,10 @@ fn hyphenated_names_in_indented_blocks() {
     writeln!(f, "   old").unwrap();
     writeln!(f, "   ```").unwrap();
     drop(f);
-    
+
     process_file(&md_path, true).unwrap();
     let content = fs::read_to_string(&md_path).unwrap();
-    
+
     // Verify indented hyphenated snippet works
     assert!(content.contains("   <!-- snips: code.rs#test-indented -->"));
     assert!(content.contains("   fn indented_test() {}"));
@@ -113,7 +117,7 @@ fn error_message_with_hyphenated_names() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
     write_source_with_hyphenated_snippet(&code_path, "existing-snippet", "fn exists() {}\n");
-    
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "<!-- snips: code.rs#non-existent-snippet -->").unwrap();
@@ -121,9 +125,13 @@ fn error_message_with_hyphenated_names() {
     writeln!(f, "old").unwrap();
     writeln!(f, "```").unwrap();
     drop(f);
-    
+
     match process_file(&md_path, false) {
-        Err(snips::SnipsError::SnippetNotFound { snippet_name, available_snippets, .. }) => {
+        Err(snips::SnipsError::SnippetNotFound {
+            snippet_name,
+            available_snippets,
+            ..
+        }) => {
             assert_eq!(snippet_name, "non-existent-snippet");
             assert!(available_snippets.contains("existing-snippet"));
         }

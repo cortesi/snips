@@ -25,7 +25,9 @@ fn named_snippet_not_found() {
     writeln!(f, "```").unwrap();
     drop(f);
     match process_file(&md_path, false) {
-        Err(SnipsError::SnippetNotFound { file, snippet_name, .. }) => {
+        Err(SnipsError::SnippetNotFound {
+            file, snippet_name, ..
+        }) => {
             assert_eq!(file, code_path);
             assert_eq!(snippet_name, "foo");
         }

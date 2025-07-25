@@ -1,3 +1,6 @@
+v0.0.5
+- Names in snippet end tags now optional
+- Hyphens in snippet names are now allowed
 
 v0.0.4
 - Better error output

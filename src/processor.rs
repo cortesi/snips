@@ -17,7 +17,10 @@ pub struct SnippetDiff {
 }
 
 static MARKER_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(&format!(r"^(?P<indent>\s*)<!--\s*snips:\s*(?P<path>[^#\s]+)(?:#(?P<name>{}+))?\s*-->\s*$", SNIPPET_ID_CHARS)).unwrap()
+    Regex::new(&format!(
+        r"^(?P<indent>\s*)<!--\s*snips:\s*(?P<path>[^#\s]+)(?:#(?P<name>{SNIPPET_ID_CHARS}+))?\s*-->\s*$"
+    ))
+    .unwrap()
 });
 
 fn apply_indentation(content: &str, indent: &str) -> String {
@@ -74,20 +77,22 @@ impl Processor {
     }
 }
 
-fn get_content_diffs(content: &str, base: &Path, file_path: &Path) -> Result<Vec<SnippetDiff>, SnipsError> {
+fn get_content_diffs(
+    content: &str,
+    base: &Path,
+    file_path: &Path,
+) -> Result<Vec<SnippetDiff>, SnipsError> {
     let marker_re = &MARKER_RE;
     let mut diffs = Vec::new();
     let mut lines = content.lines().enumerate();
 
     while let Some((idx, line)) = lines.next() {
         if line.trim_start().starts_with("<!-- snips:") {
-            let caps = marker_re
-                .captures(line)
-                .ok_or(SnipsError::InvalidMarker {
-                    file: file_path.to_path_buf(),
-                    line: idx + 1,
-                    content: line.to_string(),
-                })?;
+            let caps = marker_re.captures(line).ok_or(SnipsError::InvalidMarker {
+                file: file_path.to_path_buf(),
+                line: idx + 1,
+                content: line.to_string(),
+            })?;
             let _indent = caps.name("indent").unwrap().as_str();
             let src_path = caps.name("path").unwrap().as_str();
             let snippet_name = caps.name("name").map(|m| m.as_str().to_string());
@@ -135,13 +140,11 @@ fn process_content(content: &str, base: &Path, file_path: &Path) -> Result<Strin
     let mut lines = content.lines().enumerate();
     while let Some((idx, line)) = lines.next() {
         if line.trim_start().starts_with("<!-- snips:") {
-            let caps = marker_re
-                .captures(line)
-                .ok_or(SnipsError::InvalidMarker {
-                    file: file_path.to_path_buf(),
-                    line: idx + 1,
-                    content: line.to_string(),
-                })?;
+            let caps = marker_re.captures(line).ok_or(SnipsError::InvalidMarker {
+                file: file_path.to_path_buf(),
+                line: idx + 1,
+                content: line.to_string(),
+            })?;
             let indent = caps.name("indent").unwrap().as_str();
             let src_path = caps.name("path").unwrap().as_str();
             let snippet_name = caps.name("name").map(|m| m.as_str().to_string());

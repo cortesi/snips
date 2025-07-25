@@ -23,8 +23,11 @@ fn write_source_file(path: &Path, content: &str) {
 fn indented_marker_with_spaces() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
-    write_source_file(&code_path, "fn hello() {\n    println!(\"Hello, world!\");\n}\n");
-    
+    write_source_file(
+        &code_path,
+        "fn hello() {\n    println!(\"Hello, world!\");\n}\n",
+    );
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "Some text:").unwrap();
@@ -34,10 +37,10 @@ fn indented_marker_with_spaces() {
     writeln!(f, "    old content").unwrap();
     writeln!(f, "    ```").unwrap();
     drop(f);
-    
+
     process_file(&md_path, true).unwrap();
     let content = fs::read_to_string(&md_path).unwrap();
-    
+
     // Verify the marker is indented
     assert!(content.contains("    <!-- snips: code.rs -->"));
     // Verify the code fences are indented
@@ -54,7 +57,7 @@ fn indented_marker_with_tabs() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
     write_source_file(&code_path, "fn hello() {\n    println!(\"Hello!\");\n}\n");
-    
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "Some text:").unwrap();
@@ -64,10 +67,10 @@ fn indented_marker_with_tabs() {
     writeln!(f, "\told content").unwrap();
     writeln!(f, "\t```").unwrap();
     drop(f);
-    
+
     process_file(&md_path, true).unwrap();
     let content = fs::read_to_string(&md_path).unwrap();
-    
+
     // Verify the marker is indented with tab
     assert!(content.contains("\t<!-- snips: code.rs -->"));
     // Verify the code fences are indented with tab
@@ -83,8 +86,12 @@ fn indented_marker_with_tabs() {
 fn indented_named_snippet() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
-    write_source_with_snippet(&code_path, "example", "fn test() {\n    println!(\"test\");\n}\n");
-    
+    write_source_with_snippet(
+        &code_path,
+        "example",
+        "fn test() {\n    println!(\"test\");\n}\n",
+    );
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "1. First item").unwrap();
@@ -95,10 +102,10 @@ fn indented_named_snippet() {
     writeln!(f, "   old content").unwrap();
     writeln!(f, "   ```").unwrap();
     drop(f);
-    
+
     process_file(&md_path, true).unwrap();
     let content = fs::read_to_string(&md_path).unwrap();
-    
+
     // Verify the marker is indented
     assert!(content.contains("   <!-- snips: code.rs#example -->"));
     // Verify the code fences are indented
@@ -115,7 +122,7 @@ fn mixed_indentation_levels() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
     write_source_file(&code_path, "fn simple() {}\n");
-    
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "No indentation:").unwrap();
@@ -130,14 +137,14 @@ fn mixed_indentation_levels() {
     writeln!(f, "  old").unwrap();
     writeln!(f, "  ```").unwrap();
     drop(f);
-    
+
     process_file(&md_path, true).unwrap();
     let content = fs::read_to_string(&md_path).unwrap();
-    
+
     // First block should have no indentation
     assert!(content.contains("<!-- snips: code.rs -->"));
     assert!(content.contains("```rust\nfn simple() {}\n\n```"));
-    
+
     // Second block should be indented with 2 spaces
     assert!(content.contains("  <!-- snips: code.rs -->"));
     assert!(content.contains("  ```rust\n  fn simple() {}\n  ```"));
@@ -147,8 +154,11 @@ fn mixed_indentation_levels() {
 fn preserve_empty_lines_in_indented_code() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
-    write_source_file(&code_path, "fn test() {\n    let x = 1;\n\n    let y = 2;\n}\n");
-    
+    write_source_file(
+        &code_path,
+        "fn test() {\n    let x = 1;\n\n    let y = 2;\n}\n",
+    );
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "Example:").unwrap();
@@ -158,14 +168,18 @@ fn preserve_empty_lines_in_indented_code() {
     writeln!(f, "    old").unwrap();
     writeln!(f, "    ```").unwrap();
     drop(f);
-    
+
     process_file(&md_path, true).unwrap();
     let content = fs::read_to_string(&md_path).unwrap();
-    
+
     // Verify empty lines are preserved without adding indentation
     let lines: Vec<&str> = content.lines().collect();
     // Look for the correctly indented line (original 4 space indent + content indentation)
-    let empty_line_idx = lines.iter().position(|&line| line == "        let x = 1;").unwrap() + 1;
+    let empty_line_idx = lines
+        .iter()
+        .position(|&line| line == "        let x = 1;")
+        .unwrap()
+        + 1;
     assert_eq!(lines[empty_line_idx], ""); // Empty line should remain empty
     assert!(content.contains("        let x = 1;\n\n        let y = 2;"));
 }
@@ -175,7 +189,7 @@ fn deeply_indented_marker() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
     write_source_file(&code_path, "const X: i32 = 42;\n");
-    
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "- Item 1").unwrap();
@@ -187,10 +201,10 @@ fn deeply_indented_marker() {
     writeln!(f, "      old").unwrap();
     writeln!(f, "      ```").unwrap();
     drop(f);
-    
+
     process_file(&md_path, true).unwrap();
     let content = fs::read_to_string(&md_path).unwrap();
-    
+
     // Verify deep indentation is preserved
     assert!(content.contains("      <!-- snips: code.rs -->"));
     assert!(content.contains("      ```rust"));
@@ -203,7 +217,7 @@ fn zero_indentation_marker() {
     let dir = tempfile::tempdir().unwrap();
     let code_path = dir.path().join("code.rs");
     write_source_file(&code_path, "fn main() {}\n");
-    
+
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "<!-- snips: code.rs -->").unwrap();
@@ -211,10 +225,10 @@ fn zero_indentation_marker() {
     writeln!(f, "old").unwrap();
     writeln!(f, "```").unwrap();
     drop(f);
-    
+
     process_file(&md_path, true).unwrap();
     let content = fs::read_to_string(&md_path).unwrap();
-    
+
     // Verify no extra indentation is added when marker has no indentation
     assert!(content.contains("<!-- snips: code.rs -->"));
     assert!(content.contains("```rust\nfn main() {}\n\n```"));

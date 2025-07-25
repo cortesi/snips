@@ -33,19 +33,26 @@ impl Snippet {
 }
 
 static START_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(&format!(r"snips-start:\s*(?P<name>{}+)\s*$", SNIPPET_ID_CHARS)).unwrap()
+    Regex::new(&format!(
+        r"snips-start:\s*(?P<name>{SNIPPET_ID_CHARS}+)\s*$"
+    ))
+    .unwrap()
 });
 static END_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(&format!(r"snips-end:(?:\s*(?P<name>{}+))?\s*$", SNIPPET_ID_CHARS)).unwrap()
+    Regex::new(&format!(
+        r"snips-end(?::(?:\s*(?P<name>{SNIPPET_ID_CHARS}+))?)?\s*$"
+    ))
+    .unwrap()
 });
 
 fn find_available_snippets(content: &str) -> Vec<String> {
     let mut snippets = Vec::new();
     for line in content.lines() {
         if let Some(caps) = START_RE.captures(line)
-            && let Some(name) = caps.name("name") {
-                snippets.push(name.as_str().to_string());
-            }
+            && let Some(name) = caps.name("name")
+        {
+            snippets.push(name.as_str().to_string());
+        }
     }
     snippets
 }
@@ -68,7 +75,7 @@ fn extract_named_snippet(content: &str, name: &str, path: &Path) -> Result<Strin
         }
         if END_RE.captures(line).is_some_and(|c| {
             // End marker matches if it has no name or if the name matches our target
-            c.name("name").map_or(true, |m| m.as_str() == name)
+            c.name("name").is_none_or(|m| m.as_str() == name)
         }) {
             let text = snippet.join("\n");
             return Ok(dedent(&text).to_string());
