@@ -5,6 +5,9 @@ use regex::Regex;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+// Valid characters for snippet identifiers: letters, digits, underscores, and hyphens
+const SNIPPET_ID_CHARS: &str = r"[\w-]";
+
 #[derive(Debug)]
 pub struct SnippetDiff {
     pub path: String,
@@ -14,7 +17,7 @@ pub struct SnippetDiff {
 }
 
 static MARKER_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^(?P<indent>\s*)<!--\s*snips:\s*(?P<path>[^#\s]+)(?:#(?P<name>\w+))?\s*-->\s*$").unwrap()
+    Regex::new(&format!(r"^(?P<indent>\s*)<!--\s*snips:\s*(?P<path>[^#\s]+)(?:#(?P<name>{}+))?\s*-->\s*$", SNIPPET_ID_CHARS)).unwrap()
 });
 
 fn apply_indentation(content: &str, indent: &str) -> String {

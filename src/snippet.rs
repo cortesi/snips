@@ -5,6 +5,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use textwrap::dedent;
 
+// Valid characters for snippet identifiers: letters, digits, underscores, and hyphens
+const SNIPPET_ID_CHARS: &str = r"[\w-]";
+
 pub struct Snippet {
     pub path: PathBuf,
     pub name: Option<String>,
@@ -29,9 +32,12 @@ impl Snippet {
     }
 }
 
-static START_RE: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"snips-start:\s*(?P<name>\w+)\s*$").unwrap());
-static END_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"snips-end:\s*(?P<name>\w+)\s*$").unwrap());
+static START_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(&format!(r"snips-start:\s*(?P<name>{}+)\s*$", SNIPPET_ID_CHARS)).unwrap()
+});
+static END_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(&format!(r"snips-end:(?:\s*(?P<name>{}+))?\s*$", SNIPPET_ID_CHARS)).unwrap()
+});
 
 fn find_available_snippets(content: &str) -> Vec<String> {
     let mut snippets = Vec::new();
@@ -60,11 +66,10 @@ fn extract_named_snippet(content: &str, name: &str, path: &Path) -> Result<Strin
             }
             continue;
         }
-        if END_RE
-            .captures(line)
-            .map(|c| c.name("name").map(|m| m.as_str() == name).unwrap_or(false))
-            .unwrap_or(false)
-        {
+        if END_RE.captures(line).is_some_and(|c| {
+            // End marker matches if it has no name or if the name matches our target
+            c.name("name").map_or(true, |m| m.as_str() == name)
+        }) {
             let text = snippet.join("\n");
             return Ok(dedent(&text).to_string());
         }
