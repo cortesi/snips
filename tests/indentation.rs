@@ -31,7 +31,7 @@ fn indented_marker_with_spaces() {
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "Some text:").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "    <!-- snips: code.rs -->").unwrap();
     writeln!(f, "    ```rust").unwrap();
     writeln!(f, "    old content").unwrap();
@@ -61,7 +61,7 @@ fn indented_marker_with_tabs() {
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "Some text:").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "\t<!-- snips: code.rs -->").unwrap();
     writeln!(f, "\t```rust").unwrap();
     writeln!(f, "\told content").unwrap();
@@ -96,7 +96,7 @@ fn indented_named_snippet() {
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "1. First item").unwrap();
     writeln!(f, "2. Second item with code:").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "   <!-- snips: code.rs#example -->").unwrap();
     writeln!(f, "   ```rust").unwrap();
     writeln!(f, "   old content").unwrap();
@@ -130,7 +130,7 @@ fn mixed_indentation_levels() {
     writeln!(f, "```rust").unwrap();
     writeln!(f, "old").unwrap();
     writeln!(f, "```").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "With indentation:").unwrap();
     writeln!(f, "  <!-- snips: code.rs -->").unwrap();
     writeln!(f, "  ```rust").unwrap();
@@ -162,7 +162,7 @@ fn preserve_empty_lines_in_indented_code() {
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "Example:").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "    <!-- snips: code.rs -->").unwrap();
     writeln!(f, "    ```rust").unwrap();
     writeln!(f, "    old").unwrap();
@@ -195,7 +195,7 @@ fn deeply_indented_marker() {
     writeln!(f, "- Item 1").unwrap();
     writeln!(f, "  - Nested item").unwrap();
     writeln!(f, "    - Deep nested with code:").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "      <!-- snips: code.rs -->").unwrap();
     writeln!(f, "      ```rust").unwrap();
     writeln!(f, "      old").unwrap();

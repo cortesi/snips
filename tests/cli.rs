@@ -1,6 +1,10 @@
-use assert_cmd::Command;
+use assert_cmd::{cargo::cargo_bin_cmd, Command};
 use std::fs::{self, File};
 use std::io::Write;
+
+fn snips_cmd() -> Command {
+    cargo_bin_cmd!("snips")
+}
 
 fn make_example(dir: &tempfile::TempDir) -> std::path::PathBuf {
     let code = dir.path().join("code.rs");
@@ -18,18 +22,15 @@ fn make_example(dir: &tempfile::TempDir) -> std::path::PathBuf {
 fn check_fails_on_dirty_file() {
     let dir = tempfile::tempdir().unwrap();
     let md = make_example(&dir);
-    Command::cargo_bin("snips")
-        .unwrap()
+    snips_cmd()
         .args(["check", md.to_str().unwrap()])
         .assert()
         .failure();
-    Command::cargo_bin("snips")
-        .unwrap()
+    snips_cmd()
         .args(["render", md.to_str().unwrap()])
         .assert()
         .success();
-    Command::cargo_bin("snips")
-        .unwrap()
+    snips_cmd()
         .args(["check", md.to_str().unwrap()])
         .assert()
         .success();
@@ -39,8 +40,7 @@ fn check_fails_on_dirty_file() {
 fn diff_outputs_changes() {
     let dir = tempfile::tempdir().unwrap();
     let md = make_example(&dir);
-    let output = Command::cargo_bin("snips")
-        .unwrap()
+    let output = snips_cmd()
         .args(["diff", md.to_str().unwrap()])
         .output()
         .unwrap();
@@ -53,8 +53,7 @@ fn render_requires_files() {
     let dir = tempfile::tempdir().unwrap();
     let _md = make_example(&dir);
     std::env::set_current_dir(&dir).unwrap();
-    Command::cargo_bin("snips")
-        .unwrap()
+    snips_cmd()
         .args(["render"]) // no file args
         .assert()
         .failure();
@@ -65,8 +64,7 @@ fn check_requires_files() {
     let dir = tempfile::tempdir().unwrap();
     let _md = make_example(&dir);
     std::env::set_current_dir(&dir).unwrap();
-    Command::cargo_bin("snips")
-        .unwrap()
+    snips_cmd()
         .args(["check"]) // no file args
         .assert()
         .failure();
@@ -77,8 +75,7 @@ fn diff_requires_files() {
     let dir = tempfile::tempdir().unwrap();
     let _md = make_example(&dir);
     std::env::set_current_dir(&dir).unwrap();
-    Command::cargo_bin("snips")
-        .unwrap()
+    snips_cmd()
         .args(["diff"]) // no file args
         .assert()
         .failure();

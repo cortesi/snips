@@ -26,7 +26,7 @@ fn hyphenated_snippet_names() {
     let md_path = dir.path().join("doc.md");
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "Example with hyphenated name:").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "<!-- snips: code.rs#my-example -->").unwrap();
     writeln!(f, "```rust").unwrap();
     writeln!(f, "old content").unwrap();
@@ -50,11 +50,11 @@ fn mixed_underscore_and_hyphen_names() {
     writeln!(f, "// snips-start: under_score").unwrap();
     writeln!(f, "fn underscore_example() {{}}").unwrap();
     writeln!(f, "// snips-end: under_score").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "// snips-start: with-hyphen").unwrap();
     writeln!(f, "fn hyphen_example() {{}}").unwrap();
     writeln!(f, "// snips-end: with-hyphen").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "// snips-start: mixed_style-name").unwrap();
     writeln!(f, "fn mixed_example() {{}}").unwrap();
     writeln!(f, "// snips-end: mixed_style-name").unwrap();
@@ -66,12 +66,12 @@ fn mixed_underscore_and_hyphen_names() {
     writeln!(f, "```rust").unwrap();
     writeln!(f, "old").unwrap();
     writeln!(f, "```").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "<!-- snips: code.rs#with-hyphen -->").unwrap();
     writeln!(f, "```rust").unwrap();
     writeln!(f, "old").unwrap();
     writeln!(f, "```").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "<!-- snips: code.rs#mixed_style-name -->").unwrap();
     writeln!(f, "```rust").unwrap();
     writeln!(f, "old").unwrap();
@@ -97,7 +97,7 @@ fn hyphenated_names_in_indented_blocks() {
     let mut f = File::create(&md_path).unwrap();
     writeln!(f, "1. First item").unwrap();
     writeln!(f, "2. Item with code:").unwrap();
-    writeln!(f, "").unwrap();
+    writeln!(f).unwrap();
     writeln!(f, "   <!-- snips: code.rs#test-indented -->").unwrap();
     writeln!(f, "   ```rust").unwrap();
     writeln!(f, "   old").unwrap();
