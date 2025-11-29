@@ -1,3 +1,7 @@
+Unreleased
+- Running `snips` without file arguments now processes all Markdown files in the
+  current directory.
+
 v0.0.5
 - Names in snippet end tags now optional
 - Hyphens in snippet names are now allowed
@@ -15,4 +19,3 @@ v0.0.3
 
 v0.0.2
 - Use [languages](https://github.com/cortesi/languages) crate for language detection.
-

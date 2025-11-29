@@ -38,6 +38,9 @@ pub enum SnipsError {
     /// A snippet start marker was found without a matching end marker.
     #[error("unterminated snippet `{1}` in {0}")]
     UnterminatedSnippet(PathBuf, String),
+    /// No markdown files were found in the working directory.
+    #[error("no markdown files found in {0}")]
+    NoMarkdownFiles(PathBuf),
     /// Any other I/O error propagated from the filesystem.
     #[error("IO error: {0}")]
     Io(#[from] io::Error),

@@ -4,8 +4,8 @@
 
 use clap::Parser;
 use snips::{Processor, SnipsError, get_snippet_diffs, process_file};
-use std::path::PathBuf;
-use std::{error::Error, process};
+use std::path::{Path, PathBuf};
+use std::{env, error::Error, fs, process};
 
 /// Available operating modes for the CLI.
 enum Mode {
@@ -30,8 +30,8 @@ struct Cli {
     /// Show diff of changes
     #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "check")]
     diff: bool,
-    /// Files to process
-    #[arg(required = true)]
+    /// Files to process; defaults to all markdown files in the current directory when omitted.
+    #[arg(num_args = 0..)]
     files: Vec<PathBuf>,
 }
 
@@ -46,6 +46,38 @@ fn print_diff(old: &str, new: &str) {
         };
         print!("{sign}{change}");
     }
+}
+
+/// Determine whether `path` points to a markdown file.
+fn is_markdown(path: &Path) -> bool {
+    path.extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| matches!(ext.to_ascii_lowercase().as_str(), "md" | "markdown"))
+        .unwrap_or(false)
+}
+
+/// Determine which files to operate on, defaulting to all markdown files in the CWD.
+fn resolve_files(cli_files: &[PathBuf]) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+    if !cli_files.is_empty() {
+        return Ok(cli_files.to_vec());
+    }
+
+    let cwd = env::current_dir()?;
+    let mut discovered = Vec::new();
+    for entry in fs::read_dir(&cwd)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_file() && is_markdown(&path) {
+            discovered.push(path);
+        }
+    }
+
+    discovered.sort();
+    if discovered.is_empty() {
+        return Err(Box::new(SnipsError::NoMarkdownFiles(cwd)));
+    }
+
+    Ok(discovered)
 }
 
 /// Program entry point.
@@ -72,9 +104,11 @@ fn run() -> Result<(), Box<dyn Error>> {
         Mode::Render
     };
 
+    let files = resolve_files(&cli.files)?;
+
     match mode {
         Mode::Render => {
-            for path in &cli.files {
+            for path in &files {
                 match process_file(path, true)? {
                     Some(_) => {
                         if !cli.quiet {
@@ -90,13 +124,13 @@ fn run() -> Result<(), Box<dyn Error>> {
             }
         }
         Mode::Check => {
-            let clean = Processor::check(&cli.files)?;
+            let clean = Processor::check(&files)?;
             if !clean {
                 process::exit(1);
             }
         }
         Mode::Diff => {
-            for path in &cli.files {
+            for path in &files {
                 let diffs = get_snippet_diffs(path)?;
                 if !diffs.is_empty() {
                     for diff in diffs {

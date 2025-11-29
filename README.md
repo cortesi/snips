@@ -37,8 +37,9 @@ println!("This is the code I want in my docs!");
 ```
 ````
 
-Run `snips README.md`, and the tool will inject the source code,
-automatically handling indentation and language detection.
+Run `snips README.md` (or simply `snips` to process every Markdown file in the
+current directory), and the tool will inject the source code, automatically
+handling indentation and language detection.
 
 -----
 
@@ -72,18 +73,23 @@ cargo install snips
 
 ## Commands
 
-  * `snips <FILES>...`
+  * `snips [FILES]...`
 
-      * Processes files and writes changes directly to disk. 
+      * Processes files and writes changes directly to disk. When no files are
+        provided, `snips` processes every `.md` and `.markdown` file in the
+        current directory.
 
-  * `snips --check <FILES>...`
+  * `snips --check [FILES]...`
 
       * Checks if files are in sync. Exits with a non-zero status code if
-        changes are needed. 
+        changes are needed. Defaults to all Markdown files in the current
+        directory when no files are specified.
 
-  * `snips --diff <FILES>...`
+  * `snips --diff [FILES]...`
 
       * Shows a colored diff of pending changes without modifying any files.
+        Defaults to all Markdown files in the current directory when no files
+        are specified.
 
 -----
 

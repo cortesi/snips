@@ -4,13 +4,18 @@
 #[cfg(test)]
 mod tests {
     use assert_cmd::{Command, cargo::cargo_bin_cmd};
-    use std::env;
     use std::fs::{self, File};
     use std::io::Write;
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
 
     fn snips_cmd() -> Command {
         cargo_bin_cmd!("snips")
+    }
+
+    fn snips_cmd_in(path: &Path) -> Command {
+        let mut cmd = snips_cmd();
+        cmd.current_dir(path);
+        cmd
     }
 
     fn make_example(dir: &tempfile::TempDir) -> PathBuf {
@@ -53,43 +58,50 @@ mod tests {
     }
 
     #[test]
-    fn render_requires_files() {
+    fn render_defaults_to_markdown_files_in_cwd() {
         let dir = tempfile::tempdir().unwrap();
-        let _md = make_example(&dir);
-        env::set_current_dir(&dir).unwrap();
-        snips_cmd().assert().failure();
+        let md = make_example(&dir);
+
+        snips_cmd_in(dir.path()).assert().success();
+
+        let content = fs::read_to_string(md).unwrap();
+        assert!(!content.contains("old"));
+        assert!(content.contains("fn main(){}"));
     }
 
     #[test]
-    fn render_requires_files_when_option_provided() {
+    fn render_fails_without_markdown_files() {
         let dir = tempfile::tempdir().unwrap();
-        let _md = make_example(&dir);
-        env::set_current_dir(&dir).unwrap();
-        snips_cmd()
-            .args(["--quiet"]) // no file args
-            .assert()
-            .failure();
+        let assert = snips_cmd_in(dir.path()).assert().failure();
+        let stderr = String::from_utf8_lossy(&assert.get_output().stderr);
+        assert!(stderr.contains("no markdown files"));
     }
 
     #[test]
-    fn check_requires_files() {
+    fn check_defaults_to_markdown_files() {
         let dir = tempfile::tempdir().unwrap();
-        let _md = make_example(&dir);
-        env::set_current_dir(&dir).unwrap();
-        snips_cmd()
+        make_example(&dir);
+
+        snips_cmd_in(dir.path())
             .args(["--check"]) // no file args
             .assert()
             .failure();
+        snips_cmd_in(dir.path()).assert().success();
+        snips_cmd_in(dir.path())
+            .args(["--check"]) // now clean
+            .assert()
+            .success();
     }
 
     #[test]
-    fn diff_requires_files() {
+    fn diff_defaults_to_markdown_files() {
         let dir = tempfile::tempdir().unwrap();
-        let _md = make_example(&dir);
-        env::set_current_dir(&dir).unwrap();
-        snips_cmd()
+        make_example(&dir);
+        let output = snips_cmd_in(dir.path())
             .args(["--diff"]) // no file args
-            .assert()
-            .failure();
+            .output()
+            .unwrap();
+        let out = String::from_utf8_lossy(&output.stdout);
+        assert!(out.contains("+fn main(){}"));
     }
 }
