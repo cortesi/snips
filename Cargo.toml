@@ -10,14 +10,14 @@ repository = "https://github.com/cortesi/snips"
 keywords = ["snippets", "markdown"]
 
 
-[workspace.lints.rust]
+[lints.rust]
 missing_docs = "warn"
 
 # Enable briefly, run cargo clippy (without --tests and --examples), fix
 # unused deps, then disable it again.
 # unused_crate_dependencies = "warn"
 
-[workspace.lints.clippy]
+[lints.clippy]
 absolute_paths = "warn"
 branches_sharing_code = "warn"
 ignore_without_reason = "warn"

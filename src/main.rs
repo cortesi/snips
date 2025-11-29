@@ -1,10 +1,25 @@
+#![warn(missing_docs)]
+
+//! Command-line interface for synchronizing snippets.
+
 use clap::Parser;
 use snips::{Processor, SnipsError, get_snippet_diffs, process_file};
 use std::path::PathBuf;
 use std::{error::Error, process};
 
+/// Available operating modes for the CLI.
+enum Mode {
+    /// Render snippets into files, writing changes when needed.
+    Render,
+    /// Check whether files are up to date without writing.
+    Check,
+    /// Display diffs between embedded snippets and sources.
+    Diff,
+}
+
 #[derive(Parser)]
 #[command(version, about)]
+/// Parsed command-line arguments.
 struct Cli {
     /// Quiet mode
     #[arg(long, action = clap::ArgAction::SetTrue)]
@@ -20,6 +35,7 @@ struct Cli {
     files: Vec<PathBuf>,
 }
 
+/// Show a unified diff between two string slices.
 fn print_diff(old: &str, new: &str) {
     let diff = similar::TextDiff::from_lines(old, new);
     for change in diff.iter_all_changes() {
@@ -32,6 +48,7 @@ fn print_diff(old: &str, new: &str) {
     }
 }
 
+/// Program entry point.
 fn main() {
     if let Err(e) = run() {
         if let Some(snips_error) = e.downcast_ref::<SnipsError>() {
@@ -43,14 +60,9 @@ fn main() {
     }
 }
 
+/// Execute the command selected by CLI arguments.
 fn run() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
-
-    enum Mode {
-        Render,
-        Check,
-        Diff,
-    }
 
     let mode = if cli.check {
         Mode::Check

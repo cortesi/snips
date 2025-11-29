@@ -5,15 +5,22 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use textwrap::dedent;
 
-// Valid characters for snippet identifiers: letters, digits, underscores, and hyphens
-const SNIPPET_ID_CHARS: &str = r"[\w-]";
+/// Allowed characters for snippet identifiers.
+pub(crate) const SNIPPET_ID_CHARS: &str = r"[\w-]";
 
+/// A snippet reference made up of a source path and an optional named section.
 pub struct Snippet {
+    /// Path to the source file that contains the snippet.
     pub path: PathBuf,
+    /// Name of the snippet within the file, if one is specified.
     pub name: Option<String>,
 }
 
 impl Snippet {
+    /// Read the referenced snippet content and infer a language hint.
+    ///
+    /// When `name` is `None`, the whole file is returned. Otherwise the
+    /// named section between `snips-start`/`snips-end` markers is extracted.
     pub fn read(&self) -> Result<(String, Option<String>), SnipsError> {
         let content = fs::read_to_string(&self.path)
             .map_err(|_| SnipsError::FileNotFound(self.path.clone()))?;
@@ -27,17 +34,19 @@ impl Snippet {
         if let Some(name) = &self.name {
             Ok((extract_named_snippet(&content, name, &self.path)?, lang))
         } else {
-            Ok((dedent(&content).to_string(), lang))
+            Ok((dedent(&content), lang))
         }
     }
 }
 
+/// Matches a `snips-start` marker and captures the snippet name.
 static START_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(&format!(
         r"snips-start:\s*(?P<name>{SNIPPET_ID_CHARS}+)\s*$"
     ))
     .unwrap()
 });
+/// Matches a `snips-end` marker with an optional snippet name.
 static END_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(&format!(
         r"snips-end(?::(?:\s*(?P<name>{SNIPPET_ID_CHARS}+))?)?\s*$"
@@ -45,6 +54,7 @@ static END_RE: Lazy<Regex> = Lazy::new(|| {
     .unwrap()
 });
 
+/// Collect the names of all snippets available in the provided content.
 fn find_available_snippets(content: &str) -> Vec<String> {
     let mut snippets = Vec::new();
     for line in content.lines() {
@@ -57,6 +67,7 @@ fn find_available_snippets(content: &str) -> Vec<String> {
     snippets
 }
 
+/// Extract a named snippet between matching start/end markers, respecting indentation.
 fn extract_named_snippet(content: &str, name: &str, path: &Path) -> Result<String, SnipsError> {
     let lines = content.lines();
     let mut found = false;
@@ -78,7 +89,7 @@ fn extract_named_snippet(content: &str, name: &str, path: &Path) -> Result<Strin
             c.name("name").is_none_or(|m| m.as_str() == name)
         }) {
             let text = snippet.join("\n");
-            return Ok(dedent(&text).to_string());
+            return Ok(dedent(&text));
         }
         snippet.push(line.to_string());
     }

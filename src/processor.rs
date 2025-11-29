@@ -1,21 +1,25 @@
 use crate::error::SnipsError;
-use crate::snippet::Snippet;
+use crate::snippet::{SNIPPET_ID_CHARS, Snippet};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-// Valid characters for snippet identifiers: letters, digits, underscores, and hyphens
-const SNIPPET_ID_CHARS: &str = r"[\w-]";
-
+/// A difference between existing markdown content and the current snippet content.
 #[derive(Debug)]
 pub struct SnippetDiff {
+    /// Snippet source path relative to the markdown file.
     pub path: String,
+    /// Optional snippet name inside the source file.
     pub name: Option<String>,
+    /// Content currently present in the markdown file.
     pub old_content: String,
+    /// Fresh content read from the source file.
     pub new_content: String,
 }
 
+/// Regex that matches a `<!-- snips: ... -->` marker and captures indentation,
+/// source path, and optional snippet name.
 static MARKER_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(&format!(
         r"^(?P<indent>\s*)<!--\s*snips:\s*(?P<path>[^#\s]+)(?:#(?P<name>{SNIPPET_ID_CHARS}+))?\s*-->\s*$"
@@ -23,6 +27,7 @@ static MARKER_RE: Lazy<Regex> = Lazy::new(|| {
     .unwrap()
 });
 
+/// Apply indentation to every non-blank line in `content`.
 fn apply_indentation(content: &str, indent: &str) -> String {
     if indent.is_empty() {
         content.to_string()
@@ -41,6 +46,7 @@ fn apply_indentation(content: &str, indent: &str) -> String {
     }
 }
 
+/// Process a single markdown file and optionally write updates in place.
 pub fn process_file(path: &Path, write: bool) -> Result<Option<String>, SnipsError> {
     let content =
         fs::read_to_string(path).map_err(|_| SnipsError::FileNotFound(path.to_path_buf()))?;
@@ -56,6 +62,7 @@ pub fn process_file(path: &Path, write: bool) -> Result<Option<String>, SnipsErr
     })
 }
 
+/// Compute diffs between snippets embedded in `path` and their sources.
 pub fn get_snippet_diffs(path: &Path) -> Result<Vec<SnippetDiff>, SnipsError> {
     let content =
         fs::read_to_string(path).map_err(|_| SnipsError::FileNotFound(path.to_path_buf()))?;
@@ -63,9 +70,11 @@ pub fn get_snippet_diffs(path: &Path) -> Result<Vec<SnippetDiff>, SnipsError> {
     get_content_diffs(&content, base, path)
 }
 
+/// Marker type used to expose the `check` entry point without state.
 pub struct Processor;
 
 impl Processor {
+    /// Return `true` when all provided markdown files are already up to date.
     pub fn check(paths: &[PathBuf]) -> Result<bool, SnipsError> {
         let mut clean = true;
         for p in paths {
@@ -77,6 +86,7 @@ impl Processor {
     }
 }
 
+/// Scan markdown content for snippet markers and compute diffs against source files.
 fn get_content_diffs(
     content: &str,
     base: &Path,
@@ -137,6 +147,7 @@ fn get_content_diffs(
     Ok(diffs)
 }
 
+/// Replace every snippet marker in `content` with the latest snippet text.
 fn process_content(content: &str, base: &Path, file_path: &Path) -> Result<String, SnipsError> {
     let marker_re = &MARKER_RE;
     let mut out = Vec::new();
