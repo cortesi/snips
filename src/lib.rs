@@ -10,4 +10,7 @@ pub mod processor;
 pub mod snippet;
 
 pub use error::SnipsError;
-pub use processor::{Processor, SnippetDiff, get_snippet_diffs, process_file};
+pub use processor::{
+    RenderSummary, SnippetDiff, SnippetLocator, SnippetReport, check_files, diff_file,
+    sync_snippets_in_file, sync_snippets_in_file_with_summary,
+};

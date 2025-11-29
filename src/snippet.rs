@@ -9,19 +9,19 @@ use textwrap::dedent;
 pub(crate) const SNIPPET_ID_CHARS: &str = r"[\w-]";
 
 /// A snippet reference made up of a source path and an optional named section.
-pub struct Snippet {
+pub struct SnippetRef {
     /// Path to the source file that contains the snippet.
     pub path: PathBuf,
     /// Name of the snippet within the file, if one is specified.
     pub name: Option<String>,
 }
 
-impl Snippet {
+impl SnippetRef {
     /// Read the referenced snippet content and infer a language hint.
     ///
     /// When `name` is `None`, the whole file is returned. Otherwise the
     /// named section between `snips-start`/`snips-end` markers is extracted.
-    pub fn read(&self) -> Result<(String, Option<String>), SnipsError> {
+    pub fn resolve(&self) -> Result<(String, Option<String>), SnipsError> {
         let content = fs::read_to_string(&self.path)
             .map_err(|_| SnipsError::FileNotFound(self.path.clone()))?;
         let lang = self

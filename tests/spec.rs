@@ -3,7 +3,7 @@
 /// Validate expected behavior across the documented spec cases.
 #[cfg(test)]
 mod tests {
-    use snips::{SnipsError, process_file};
+    use snips::{SnipsError, sync_snippets_in_file};
     use std::fs::{self, File};
     use std::io::Write;
     use std::path::Path;
@@ -37,7 +37,7 @@ mod tests {
         fs::write(&code_path, "fn x() {}\n").unwrap();
         let md_path = docs_dir.join("doc.md");
         write_marker(&md_path, "<!-- snips: ../src/code.rs -->");
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("fn x() {}"));
     }
@@ -51,7 +51,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         writeln!(f, "```").unwrap();
         drop(f);
-        match process_file(&md_path, false) {
+        match sync_snippets_in_file(&md_path, false) {
             Err(SnipsError::InvalidMarker { .. }) => (),
             other => panic!("unexpected {other:?}"),
         }
@@ -62,7 +62,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let md_path = dir.path().join("doc.md");
         fs::write(&md_path, "no snippets\n").unwrap();
-        let res = process_file(&md_path, false).unwrap();
+        let res = sync_snippets_in_file(&md_path, false).unwrap();
         assert!(res.is_none());
     }
 
@@ -73,7 +73,7 @@ mod tests {
         fs::write(&code_path, "// snips-start: foo\nfn a(){}\n").unwrap();
         let md_path = dir.path().join("doc.md");
         write_marker(&md_path, "<!-- snips: code.rs#foo -->");
-        match process_file(&md_path, false) {
+        match sync_snippets_in_file(&md_path, false) {
             Err(SnipsError::UnterminatedSnippet(p, name)) => {
                 assert_eq!(p, code_path);
                 assert_eq!(name, "foo");
@@ -89,7 +89,7 @@ mod tests {
         fs::write(&code_path, "// snips-start: A\nfn a(){}\n// snips-end: B\n").unwrap();
         let md_path = dir.path().join("doc.md");
         write_marker(&md_path, "<!-- snips: code.rs#A -->");
-        match process_file(&md_path, false) {
+        match sync_snippets_in_file(&md_path, false) {
             Err(SnipsError::UnterminatedSnippet(p, name)) => {
                 assert_eq!(p, code_path);
                 assert_eq!(name, "A".to_string());
@@ -105,7 +105,7 @@ mod tests {
         fs::write(&code_path, "// snips-start: foo\n// snips-end: foo\n").unwrap();
         let md_path = dir.path().join("doc.md");
         write_marker(&md_path, "<!-- snips: code.rs#foo -->");
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("```"));
     }
@@ -121,7 +121,7 @@ mod tests {
         .unwrap();
         let md_path = dir.path().join("doc.md");
         write_marker(&md_path, "<!-- snips: code.rs#foo -->");
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("fn a(){}"));
     }
@@ -134,7 +134,7 @@ mod tests {
         fs::write(&code_path, code).unwrap();
         let md_path = dir.path().join("doc.md");
         write_marker(&md_path, "<!-- snips: code.rs#foo -->");
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("fn b(){}"));
         assert!(content.contains("fn a(){}"));
@@ -148,7 +148,7 @@ mod tests {
         fs::write(&code_path, code).unwrap();
         let md_path = dir.path().join("doc.md");
         write_marker(&md_path, "<!-- snips: code.rs#foo -->");
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("fn a(){}\n\nfn b(){}"));
     }
@@ -160,7 +160,7 @@ mod tests {
         fs::write(&code_path, "fn main(){}\n").unwrap();
         let md_path = dir.path().join("doc.md");
         write_marker(&md_path, "<!-- snips: code.rs -->");
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("fn main(){}"));
     }
@@ -172,7 +172,7 @@ mod tests {
         fs::write(&code_path, "").unwrap();
         let md_path = dir.path().join("doc.md");
         write_marker(&md_path, "<!-- snips: code.rs -->");
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("```"));
     }
@@ -184,7 +184,7 @@ mod tests {
         fs::write(&code_path, "foo\n").unwrap();
         let md_path = dir.path().join("doc.md");
         write_marker(&md_path, "<!-- snips: code.data -->");
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("```\nfoo"));
     }
@@ -197,10 +197,10 @@ mod tests {
         let md_path = dir.path().join("doc.md");
         write_marker(&md_path, "<!-- snips: code.rs -->");
         // first run
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let first = fs::read_to_string(&md_path).unwrap();
         // second run
-        let res = process_file(&md_path, true).unwrap();
+        let res = sync_snippets_in_file(&md_path, true).unwrap();
         assert!(res.is_none());
         let second = fs::read_to_string(&md_path).unwrap();
         assert_eq!(first, second);
@@ -213,7 +213,7 @@ mod tests {
         fs::write(&code_path, "fn main(){}\n").unwrap();
         let md_path = dir.path().join("doc.md");
         write_marker_trailing(&md_path, "<!-- snips: code.rs -->", "   ");
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("fn main(){}"));
     }
@@ -238,12 +238,12 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let first = fs::read_to_string(&md_path).unwrap();
         assert!(first.contains("fn a(){}"));
         assert!(first.contains("fn b(){}"));
 
-        let res = process_file(&md_path, true).unwrap();
+        let res = sync_snippets_in_file(&md_path, true).unwrap();
         assert!(res.is_none());
         let second = fs::read_to_string(&md_path).unwrap();
         assert_eq!(first, second);

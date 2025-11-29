@@ -3,7 +3,11 @@
 //! Command-line interface for synchronizing snippets.
 
 use clap::Parser;
-use snips::{Processor, SnipsError, get_snippet_diffs, process_file};
+use owo_colors::OwoColorize;
+use snips::{
+    RenderSummary, SnippetReport, SnipsError, check_files, diff_file,
+    sync_snippets_in_file_with_summary,
+};
 use std::path::{Path, PathBuf};
 use std::{env, error::Error, fs, process};
 
@@ -56,6 +60,11 @@ fn is_markdown(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
+/// Convert `path` to a string relative to `cwd` when possible.
+fn relative_display(path: &Path, cwd: &Path) -> String {
+    path.strip_prefix(cwd).unwrap_or(path).display().to_string()
+}
+
 /// Determine which files to operate on, defaulting to all markdown files in the CWD.
 fn resolve_files(cli_files: &[PathBuf]) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     if !cli_files.is_empty() {
@@ -104,34 +113,47 @@ fn run() -> Result<(), Box<dyn Error>> {
         Mode::Render
     };
 
+    let cwd = env::current_dir()?;
     let files = resolve_files(&cli.files)?;
 
     match mode {
         Mode::Render => {
             for path in &files {
-                match process_file(path, true)? {
-                    Some(_) => {
-                        if !cli.quiet {
-                            println!("updated {}", path.display());
-                        }
-                    }
-                    None => {
-                        if !cli.quiet {
-                            println!("{} up-to-date", path.display());
-                        }
+                let summary: RenderSummary = sync_snippets_in_file_with_summary(path, true)?;
+                if cli.quiet {
+                    continue;
+                }
+
+                let display_path = relative_display(path, &cwd);
+                let file_label = format!("{}", display_path.blue().bold());
+                println!("{file_label}");
+
+                if summary.snippets.is_empty() {
+                    let none = format!("{}", "(no snippets found)".bright_yellow());
+                    println!("  {none}");
+                } else {
+                    for SnippetReport { locator, updated } in summary.snippets {
+                        let marker = locator.marker();
+                        let bullet = format!("{}", "↳".cyan());
+                        let marker_display = if updated {
+                            format!("{} [updated]", marker.green())
+                        } else {
+                            format!("{}", marker.bright_white().dimmed())
+                        };
+                        println!("  {bullet} {marker_display}");
                     }
                 }
             }
         }
         Mode::Check => {
-            let clean = Processor::check(&files)?;
+            let clean = check_files(&files)?;
             if !clean {
                 process::exit(1);
             }
         }
         Mode::Diff => {
             for path in &files {
-                let diffs = get_snippet_diffs(path)?;
+                let diffs = diff_file(path)?;
                 if !diffs.is_empty() {
                     for diff in diffs {
                         let name_display = if let Some(name) = &diff.name {

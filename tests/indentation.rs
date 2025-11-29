@@ -3,7 +3,7 @@
 /// Verify indentation is preserved when rendering snippets.
 #[cfg(test)]
 mod tests {
-    use snips::process_file;
+    use snips::sync_snippets_in_file;
     use std::fs::{self, File};
     use std::io::Write;
     use std::path::Path;
@@ -43,7 +43,7 @@ mod tests {
         writeln!(f, "    ```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify the marker is indented
@@ -73,7 +73,7 @@ mod tests {
         writeln!(f, "\t```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify the marker is indented with tab
@@ -108,7 +108,7 @@ mod tests {
         writeln!(f, "   ```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify the marker is indented
@@ -143,7 +143,7 @@ mod tests {
         writeln!(f, "  ```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // First block should have no indentation
@@ -174,7 +174,7 @@ mod tests {
         writeln!(f, "    ```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify empty lines are preserved without adding indentation
@@ -207,7 +207,7 @@ mod tests {
         writeln!(f, "      ```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify deep indentation is preserved
@@ -231,7 +231,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify no extra indentation is added when marker has no indentation

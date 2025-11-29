@@ -3,7 +3,7 @@
 /// Stress tests for nested and mixed indentation scenarios.
 #[cfg(test)]
 mod tests {
-    use snips::{get_snippet_diffs, process_file};
+    use snips::{diff_file, sync_snippets_in_file};
     use std::fs::{self, File};
     use std::io::Write;
     use std::path::Path;
@@ -55,11 +55,11 @@ mod tests {
         );
 
         // First, check if render makes any changes
-        let render_result = process_file(&md_path, false).unwrap();
+        let render_result = sync_snippets_in_file(&md_path, false).unwrap();
         println!("Render result (should be None): {:?}", render_result);
 
         // Check what diff reports
-        let diffs = get_snippet_diffs(&md_path).unwrap();
+        let diffs = diff_file(&md_path).unwrap();
         println!("Number of diffs found: {}", diffs.len());
 
         for diff in &diffs {
@@ -113,8 +113,8 @@ mod tests {
             );
 
             // Test render consistency
-            let render_result1 = process_file(&md_path, false).unwrap();
-            let render_result2 = process_file(&md_path, false).unwrap();
+            let render_result1 = sync_snippets_in_file(&md_path, false).unwrap();
+            let render_result2 = sync_snippets_in_file(&md_path, false).unwrap();
 
             assert_eq!(
                 render_result1, render_result2,
@@ -122,8 +122,8 @@ mod tests {
             );
 
             // Test diff consistency
-            let diffs1 = get_snippet_diffs(&md_path).unwrap();
-            let diffs2 = get_snippet_diffs(&md_path).unwrap();
+            let diffs1 = diff_file(&md_path).unwrap();
+            let diffs2 = diff_file(&md_path).unwrap();
 
             assert_eq!(
                 diffs1.len(),
@@ -165,9 +165,9 @@ mod tests {
         // Test multiple render passes
         let content_before = fs::read_to_string(&md_path).unwrap();
 
-        let render1 = process_file(&md_path, false).unwrap();
-        let render2 = process_file(&md_path, false).unwrap();
-        let render3 = process_file(&md_path, false).unwrap();
+        let render1 = sync_snippets_in_file(&md_path, false).unwrap();
+        let render2 = sync_snippets_in_file(&md_path, false).unwrap();
+        let render3 = sync_snippets_in_file(&md_path, false).unwrap();
 
         let content_after = fs::read_to_string(&md_path).unwrap();
 
@@ -182,7 +182,7 @@ mod tests {
         assert_eq!(render2, render3, "Second and third render should agree");
 
         // Test diff consistency
-        let diffs = get_snippet_diffs(&md_path).unwrap();
+        let diffs = diff_file(&md_path).unwrap();
 
         if render1.is_none() {
             assert!(
@@ -223,8 +223,8 @@ mod tests {
         drop(f);
 
         // Test render and diff consistency
-        let render_result = process_file(&md_path, false).unwrap();
-        let diffs = get_snippet_diffs(&md_path).unwrap();
+        let render_result = sync_snippets_in_file(&md_path, false).unwrap();
+        let diffs = diff_file(&md_path).unwrap();
 
         println!("Empty lines test - render result: {:?}", render_result);
         println!("Empty lines test - diffs: {}", diffs.len());
@@ -267,8 +267,8 @@ mod tests {
         );
 
         for (name, path) in [("tabs", &md_path_tabs), ("spaces", &md_path_spaces)] {
-            let render_result = process_file(path, false).unwrap();
-            let diffs = get_snippet_diffs(path).unwrap();
+            let render_result = sync_snippets_in_file(path, false).unwrap();
+            let diffs = diff_file(path).unwrap();
 
             println!("{name} test - render result: {:?}", render_result);
             println!("{name} test - diffs: {}", diffs.len());
@@ -303,8 +303,8 @@ mod tests {
 
         // Test multiple iterations to ensure stability
         for i in 1..=5 {
-            let render_result = process_file(&md_path, false).unwrap();
-            let diffs = get_snippet_diffs(&md_path).unwrap();
+            let render_result = sync_snippets_in_file(&md_path, false).unwrap();
+            let diffs = diff_file(&md_path).unwrap();
 
             if render_result.is_none() {
                 assert!(
@@ -359,8 +359,8 @@ mod tests {
         drop(f);
 
         // Test render/diff consistency
-        let render_result = process_file(&md_path, false).unwrap();
-        let diffs = get_snippet_diffs(&md_path).unwrap();
+        let render_result = sync_snippets_in_file(&md_path, false).unwrap();
+        let diffs = diff_file(&md_path).unwrap();
 
         if render_result.is_none() {
             assert!(

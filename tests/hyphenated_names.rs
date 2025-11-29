@@ -3,7 +3,7 @@
 /// Exercises handling of hyphenated snippet names across contexts.
 #[cfg(test)]
 mod tests {
-    use snips::{SnipsError, process_file};
+    use snips::{SnipsError, sync_snippets_in_file};
     use std::fs::{self, File};
     use std::io::Write;
     use std::path::Path;
@@ -38,7 +38,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify the snippet was processed correctly
@@ -83,7 +83,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify all snippet styles work
@@ -113,7 +113,7 @@ mod tests {
         writeln!(f, "   ```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify indented hyphenated snippet works
@@ -135,7 +135,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        match process_file(&md_path, false) {
+        match sync_snippets_in_file(&md_path, false) {
             Err(SnipsError::SnippetNotFound {
                 snippet_name,
                 available_snippets,

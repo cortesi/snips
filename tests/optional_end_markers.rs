@@ -3,7 +3,7 @@
 /// Ensure colonless and optional end markers behave as expected.
 #[cfg(test)]
 mod tests {
-    use snips::process_file;
+    use snips::sync_snippets_in_file;
     use std::fs::{self, File};
     use std::io::Write;
     use std::path::Path;
@@ -48,7 +48,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify the snippet was processed correctly
@@ -93,7 +93,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify all snippet styles work
@@ -133,7 +133,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify both snippets work independently
@@ -169,7 +169,7 @@ mod tests {
         writeln!(f, "   ```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify indented snippet with optional end marker works
@@ -192,7 +192,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify backwards compatibility - named end markers still work
@@ -229,7 +229,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify the snippet was processed correctly
@@ -265,7 +265,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        process_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify both styles work
