@@ -1,4 +1,4 @@
-use assert_cmd::{cargo::cargo_bin_cmd, Command};
+use assert_cmd::{Command, cargo::cargo_bin_cmd};
 use std::fs::{self, File};
 use std::io::Write;
 
@@ -23,15 +23,12 @@ fn check_fails_on_dirty_file() {
     let dir = tempfile::tempdir().unwrap();
     let md = make_example(&dir);
     snips_cmd()
-        .args(["check", md.to_str().unwrap()])
+        .args(["--check", md.to_str().unwrap()])
         .assert()
         .failure();
+    snips_cmd().args([md.to_str().unwrap()]).assert().success();
     snips_cmd()
-        .args(["render", md.to_str().unwrap()])
-        .assert()
-        .success();
-    snips_cmd()
-        .args(["check", md.to_str().unwrap()])
+        .args(["--check", md.to_str().unwrap()])
         .assert()
         .success();
 }
@@ -41,7 +38,7 @@ fn diff_outputs_changes() {
     let dir = tempfile::tempdir().unwrap();
     let md = make_example(&dir);
     let output = snips_cmd()
-        .args(["diff", md.to_str().unwrap()])
+        .args(["--diff", md.to_str().unwrap()])
         .output()
         .unwrap();
     let out = String::from_utf8_lossy(&output.stdout);
@@ -53,8 +50,16 @@ fn render_requires_files() {
     let dir = tempfile::tempdir().unwrap();
     let _md = make_example(&dir);
     std::env::set_current_dir(&dir).unwrap();
+    snips_cmd().assert().failure();
+}
+
+#[test]
+fn render_requires_files_when_option_provided() {
+    let dir = tempfile::tempdir().unwrap();
+    let _md = make_example(&dir);
+    std::env::set_current_dir(&dir).unwrap();
     snips_cmd()
-        .args(["render"]) // no file args
+        .args(["--quiet"]) // no file args
         .assert()
         .failure();
 }
@@ -65,7 +70,7 @@ fn check_requires_files() {
     let _md = make_example(&dir);
     std::env::set_current_dir(&dir).unwrap();
     snips_cmd()
-        .args(["check"]) // no file args
+        .args(["--check"]) // no file args
         .assert()
         .failure();
 }
@@ -76,7 +81,7 @@ fn diff_requires_files() {
     let _md = make_example(&dir);
     std::env::set_current_dir(&dir).unwrap();
     snips_cmd()
-        .args(["diff"]) // no file args
+        .args(["--diff"]) // no file args
         .assert()
         .failure();
 }

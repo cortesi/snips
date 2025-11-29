@@ -1,34 +1,23 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use snips::{Processor, SnipsError, get_snippet_diffs, process_file};
 use std::path::PathBuf;
+use std::{error::Error, process};
 
 #[derive(Parser)]
 #[command(version, about)]
 struct Cli {
-    #[command(subcommand)]
-    command: Commands,
     /// Quiet mode
     #[arg(long, action = clap::ArgAction::SetTrue)]
     quiet: bool,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// Process files to sync snippets
-    Render {
-        #[arg(required = true)]
-        files: Vec<PathBuf>,
-    },
     /// Check if files are in sync (exits with error if out of date)
-    Check {
-        #[arg(required = true)]
-        files: Vec<PathBuf>,
-    },
+    #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "diff")]
+    check: bool,
     /// Show diff of changes
-    Diff {
-        #[arg(required = true)]
-        files: Vec<PathBuf>,
-    },
+    #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "check")]
+    diff: bool,
+    /// Files to process
+    #[arg(required = true)]
+    files: Vec<PathBuf>,
 }
 
 fn print_diff(old: &str, new: &str) {
@@ -50,22 +39,30 @@ fn main() {
         } else {
             eprintln!("Error: {e}");
         }
-        std::process::exit(1);
+        process::exit(1);
     }
 }
 
-fn run() -> Result<(), Box<dyn std::error::Error>> {
+fn run() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
-    let files = match &cli.command {
-        Commands::Render { files } | Commands::Check { files } | Commands::Diff { files } => {
-            files.clone()
-        }
+    enum Mode {
+        Render,
+        Check,
+        Diff,
+    }
+
+    let mode = if cli.check {
+        Mode::Check
+    } else if cli.diff {
+        Mode::Diff
+    } else {
+        Mode::Render
     };
 
-    match cli.command {
-        Commands::Render { .. } => {
-            for path in &files {
+    match mode {
+        Mode::Render => {
+            for path in &cli.files {
                 match process_file(path, true)? {
                     Some(_) => {
                         if !cli.quiet {
@@ -80,14 +77,14 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-        Commands::Check { .. } => {
-            let clean = Processor::check(&files)?;
+        Mode::Check => {
+            let clean = Processor::check(&cli.files)?;
             if !clean {
-                std::process::exit(1);
+                process::exit(1);
             }
         }
-        Commands::Diff { .. } => {
-            for path in &files {
+        Mode::Diff => {
+            for path in &cli.files {
                 let diffs = get_snippet_diffs(path)?;
                 if !diffs.is_empty() {
                     for diff in diffs {

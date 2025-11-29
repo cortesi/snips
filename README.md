@@ -37,7 +37,7 @@ println!("This is the code I want in my docs!");
 ```
 ````
 
-Run `snips render README.md`, and the tool will inject the source code,
+Run `snips README.md`, and the tool will inject the source code,
 automatically handling indentation and language detection.
 
 -----
@@ -47,7 +47,7 @@ automatically handling indentation and language detection.
   * **Named Snippets**: Pull specific blocks of code from any source file.
   * **Whole-File Insertion**: Embed an entire source file with a simple marker
     (`<!-- snips: path/to/file.rs -->`).
-  * **CI/CD Friendly**: The `snips check` command fails if your docs are out of
+  * **CI/CD Friendly**: The `snips --check` flag fails if your docs are out of
     sync, making it perfect for CI pipelines.
   * **Language Agnostic**: Works with any programming language that supports
     comments.
@@ -72,16 +72,16 @@ cargo install snips
 
 ## Commands
 
-  * `snips render <FILES>...`
+  * `snips <FILES>...`
 
       * Processes files and writes changes directly to disk. 
 
-  * `snips check <FILES>...`
+  * `snips --check <FILES>...`
 
       * Checks if files are in sync. Exits with a non-zero status code if
         changes are needed. 
 
-  * `snips diff <FILES>...`
+  * `snips --diff <FILES>...`
 
       * Shows a colored diff of pending changes without modifying any files.
 
