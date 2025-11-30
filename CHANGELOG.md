@@ -1,6 +1,7 @@
-Unreleased
+v0.0.6 
 - Running `snips` without file arguments now processes all Markdown files in the
   current directory.
+- Bug fixes and correctness improvements.
 
 v0.0.5
 - Names in snippet end tags now optional
