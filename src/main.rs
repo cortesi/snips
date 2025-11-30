@@ -5,8 +5,7 @@
 use clap::Parser;
 use owo_colors::OwoColorize;
 use snips::{
-    RenderSummary, SnippetReport, SnipsError, check_files, diff_file,
-    sync_snippets_in_file_with_summary,
+    RenderSummary, SnippetReport, SnipsError, diff_file, sync_snippets_in_file_with_summary,
 };
 use std::path::{Path, PathBuf};
 use std::{env, error::Error, fs, process};
@@ -14,9 +13,8 @@ use std::{env, error::Error, fs, process};
 /// Available operating modes for the CLI.
 enum Mode {
     /// Render snippets into files, writing changes when needed.
-    Render,
-    /// Check whether files are up to date without writing.
-    Check,
+    /// When `check` is true, files aren't written and exit non-zero if changes are needed.
+    Render { check: bool },
     /// Display diffs between embedded snippets and sources.
     Diff,
 }
@@ -28,7 +26,7 @@ struct Cli {
     /// Quiet mode
     #[arg(long, action = clap::ArgAction::SetTrue)]
     quiet: bool,
-    /// Check if files are in sync (exits with error if out of date)
+    /// Check mode: don't write changes, exit with error if files are out of sync
     #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "diff")]
     check: bool,
     /// Show diff of changes
@@ -105,21 +103,24 @@ fn main() {
 fn run() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
-    let mode = if cli.check {
-        Mode::Check
-    } else if cli.diff {
+    let mode = if cli.diff {
         Mode::Diff
     } else {
-        Mode::Render
+        Mode::Render { check: cli.check }
     };
 
     let cwd = env::current_dir()?;
     let files = resolve_files(&cli.files)?;
 
     match mode {
-        Mode::Render => {
+        Mode::Render { check } => {
+            let mut any_updated = false;
             for path in &files {
-                let summary: RenderSummary = sync_snippets_in_file_with_summary(path, true)?;
+                let summary: RenderSummary =
+                    sync_snippets_in_file_with_summary(path, !check)?;
+                let file_updated = summary.snippets.iter().any(|s| s.updated);
+                any_updated = any_updated || file_updated;
+
                 if cli.quiet {
                     continue;
                 }
@@ -136,7 +137,11 @@ fn run() -> Result<(), Box<dyn Error>> {
                         let marker = locator.marker();
                         let bullet = format!("{}", "↳".cyan());
                         let marker_display = if updated {
-                            format!("{} [updated]", marker.green())
+                            if check {
+                                format!("{} [out of sync]", marker.red())
+                            } else {
+                                format!("{} [updated]", marker.green())
+                            }
                         } else {
                             format!("{}", marker.bright_white().dimmed())
                         };
@@ -144,10 +149,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                     }
                 }
             }
-        }
-        Mode::Check => {
-            let clean = check_files(&files)?;
-            if !clean {
+            if check && any_updated {
                 process::exit(1);
             }
         }
