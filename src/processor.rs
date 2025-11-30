@@ -4,7 +4,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use std::fs;
 use std::iter::Enumerate;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::str::Lines;
 
 /// A difference between existing markdown content and the current snippet content.
@@ -129,17 +129,6 @@ pub fn diff_file(path: &Path) -> Result<Vec<SnippetDiff>, SnipsError> {
         fs::read_to_string(path).map_err(|_| SnipsError::FileNotFound(path.to_path_buf()))?;
     let base = path.parent().unwrap_or(Path::new("."));
     compute_diffs(&content, base, path)
-}
-
-/// Scan a list of files and return `true` if they are all up to date.
-pub fn check_files(paths: &[PathBuf]) -> Result<bool, SnipsError> {
-    let mut clean = true;
-    for p in paths {
-        if sync_snippets_in_file(p, false)?.is_some() {
-            clean = false;
-        }
-    }
-    Ok(clean)
 }
 
 /// Scan markdown content for snippet markers and compute diffs against source files.

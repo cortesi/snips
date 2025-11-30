@@ -13,8 +13,10 @@ use std::{env, error::Error, fs, process};
 /// Available operating modes for the CLI.
 enum Mode {
     /// Render snippets into files, writing changes when needed.
-    /// When `check` is true, files aren't written and exit non-zero if changes are needed.
-    Render { check: bool },
+    Render {
+        /// When true, files aren't written and exit non-zero if changes are needed.
+        check: bool,
+    },
     /// Display diffs between embedded snippets and sources.
     Diff,
 }
