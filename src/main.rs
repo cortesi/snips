@@ -118,8 +118,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         Mode::Render { check } => {
             let mut any_updated = false;
             for path in &files {
-                let summary: RenderSummary =
-                    sync_snippets_in_file_with_summary(path, !check)?;
+                let summary: RenderSummary = sync_snippets_in_file_with_summary(path, !check)?;
                 let file_updated = summary.snippets.iter().any(|s| s.updated);
                 any_updated = any_updated || file_updated;
 

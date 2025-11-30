@@ -12,7 +12,7 @@ mod tests {
     fn missing_markdown_file() {
         let path = Path::new("nope.md");
         match sync_snippets_in_file(path, false) {
-            Err(SnipsError::FileNotFound(p)) => assert_eq!(p, path),
+            Err(SnipsError::FileNotFound { file, .. }) => assert_eq!(file, path),
             _ => panic!("expected file not found"),
         }
     }
@@ -79,5 +79,54 @@ mod tests {
             Err(SnipsError::MissingCodeFence(_)) => (),
             other => panic!("unexpected {other:?}"),
         }
+    }
+
+    #[test]
+    fn missing_closing_fence() {
+        let dir = tempfile::tempdir().unwrap();
+        let code_path = dir.path().join("code.rs");
+        fs::write(
+            &code_path,
+            "// snips-start: foo\nfn a() {}\n// snips-end: foo\n",
+        )
+        .unwrap();
+        let md_path = dir.path().join("doc.md");
+        let mut f = File::create(&md_path).unwrap();
+        writeln!(f, "<!-- snips: code.rs#foo -->").unwrap();
+        writeln!(f, "```").unwrap();
+        writeln!(f, "old").unwrap();
+        drop(f);
+
+        match sync_snippets_in_file(&md_path, false) {
+            Err(SnipsError::UnterminatedCodeFence { file, start_line }) => {
+                assert_eq!(file, md_path);
+                assert_eq!(start_line, 2);
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+    }
+
+    #[test]
+    fn preserves_fence_width() {
+        let dir = tempfile::tempdir().unwrap();
+        let code_path = dir.path().join("code.rs");
+        fs::write(
+            &code_path,
+            "// snips-start: foo\nfn a() {}\n// snips-end: foo\n",
+        )
+        .unwrap();
+        let md_path = dir.path().join("doc.md");
+        let mut f = File::create(&md_path).unwrap();
+        writeln!(f, "<!-- snips: code.rs#foo -->").unwrap();
+        writeln!(f, "````").unwrap();
+        writeln!(f, "old").unwrap();
+        writeln!(f, "````").unwrap();
+        drop(f);
+
+        sync_snippets_in_file(&md_path, true).unwrap();
+        let content = fs::read_to_string(&md_path).unwrap();
+        assert!(content.contains("````rust"));
+        assert!(content.contains("fn a() {}"));
+        assert!(content.lines().any(|l| l == "````"));
     }
 }

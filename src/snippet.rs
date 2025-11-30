@@ -2,6 +2,7 @@ use crate::error::SnipsError;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::fs;
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use textwrap::dedent;
 
@@ -22,8 +23,16 @@ impl SnippetRef {
     /// When `name` is `None`, the whole file is returned. Otherwise the
     /// named section between `snips-start`/`snips-end` markers is extracted.
     pub fn resolve(&self) -> Result<(String, Option<String>), SnipsError> {
-        let content = fs::read_to_string(&self.path)
-            .map_err(|_| SnipsError::FileNotFound(self.path.clone()))?;
+        let content = fs::read_to_string(&self.path).map_err(|source| match source.kind() {
+            ErrorKind::NotFound => SnipsError::FileNotFound {
+                file: self.path.clone(),
+                source,
+            },
+            _ => SnipsError::FileReadFailed {
+                file: self.path.clone(),
+                source,
+            },
+        })?;
         let lang = self
             .path
             .extension()

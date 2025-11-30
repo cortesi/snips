@@ -6,11 +6,34 @@ use thiserror::Error;
 /// Errors produced while processing snippets.
 pub enum SnipsError {
     /// Referenced source file could not be read from disk.
-    #[error("file not found: {0}")]
-    FileNotFound(PathBuf),
+    #[error("file not found: {file}")]
+    FileNotFound {
+        /// File that could not be read.
+        file: PathBuf,
+        /// Underlying OS error for additional context.
+        #[source]
+        source: io::Error,
+    },
+    /// Reading a file failed for reasons other than missing file.
+    #[error("failed to read {file}: {source}")]
+    FileReadFailed {
+        /// File that could not be read.
+        file: PathBuf,
+        /// Underlying OS error.
+        #[source]
+        source: io::Error,
+    },
     /// A marker was not followed by a fenced code block.
     #[error("marker not followed by code fence: line {0}")]
     MissingCodeFence(usize),
+    /// A code fence was opened but never closed.
+    #[error("code fence starting at line {start_line} in {file} is missing its closing fence")]
+    UnterminatedCodeFence {
+        /// Markdown file containing the unterminated fence.
+        file: PathBuf,
+        /// One-based line number where the fence opens.
+        start_line: usize,
+    },
     /// A marker does not match the expected syntax.
     #[error(
         "invalid marker format in {file}:{line}\n  {content}\n  Expected format: <!-- snips: path/to/file.ext --> or <!-- snips: path/to/file.ext#snippet_name -->"

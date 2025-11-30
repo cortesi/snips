@@ -3,6 +3,7 @@ use crate::snippet::{SNIPPET_ID_CHARS, SnippetRef};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::fs;
+use std::io::ErrorKind;
 use std::iter::Enumerate;
 use std::path::Path;
 use std::str::Lines;
@@ -72,6 +73,8 @@ static MARKER_RE: Lazy<Regex> = Lazy::new(|| {
 struct ParsedSnippet {
     /// Whitespace indentation preceding the marker.
     indent: String,
+    /// Width of the surrounding code fence in backticks.
+    fence_len: usize,
     /// Source information recovered from the marker line.
     locator: SnippetLocator,
     /// Original snippet text found between fences.
@@ -107,8 +110,16 @@ pub fn sync_snippets_in_file_with_summary(
     path: &Path,
     write: bool,
 ) -> Result<RenderSummary, SnipsError> {
-    let content =
-        fs::read_to_string(path).map_err(|_| SnipsError::FileNotFound(path.to_path_buf()))?;
+    let content = fs::read_to_string(path).map_err(|source| match source.kind() {
+        ErrorKind::NotFound => SnipsError::FileNotFound {
+            file: path.to_path_buf(),
+            source,
+        },
+        _ => SnipsError::FileReadFailed {
+            file: path.to_path_buf(),
+            source,
+        },
+    })?;
     let base = path.parent().unwrap_or(Path::new("."));
     let injection = inject_snippet_content(&content, base, path)?;
     let updated = injection.rendered != content;
@@ -125,8 +136,16 @@ pub fn sync_snippets_in_file_with_summary(
 
 /// Compute diffs between snippets embedded in `path` and their sources.
 pub fn diff_file(path: &Path) -> Result<Vec<SnippetDiff>, SnipsError> {
-    let content =
-        fs::read_to_string(path).map_err(|_| SnipsError::FileNotFound(path.to_path_buf()))?;
+    let content = fs::read_to_string(path).map_err(|source| match source.kind() {
+        ErrorKind::NotFound => SnipsError::FileNotFound {
+            file: path.to_path_buf(),
+            source,
+        },
+        _ => SnipsError::FileReadFailed {
+            file: path.to_path_buf(),
+            source,
+        },
+    })?;
     let base = path.parent().unwrap_or(Path::new("."));
     compute_diffs(&content, base, path)
 }
@@ -193,11 +212,13 @@ fn inject_snippet_content(
                 format!("{indent}<!-- snips: {} -->", parsed.locator.path)
             };
             out.push(marker);
+
+            let fence = "`".repeat(parsed.fence_len.max(3));
             let lang_hint = lang.unwrap_or_default();
             if lang_hint.is_empty() {
-                out.push(format!("{indent}```"));
+                out.push(format!("{indent}{fence}"));
             } else {
-                out.push(format!("{indent}```{lang_hint}"));
+                out.push(format!("{indent}{fence}{lang_hint}"));
             }
             let rendered_snippet = apply_indentation(&code, indent);
             let updated = parsed.old_content.trim() != rendered_snippet.trim();
@@ -206,7 +227,7 @@ fn inject_snippet_content(
                 updated,
             });
             out.push(rendered_snippet);
-            out.push(format!("{indent}```"));
+            out.push(format!("{indent}{fence}"));
         } else {
             out.push(line.to_string());
         }
@@ -234,7 +255,7 @@ fn parse_snippet_block(
     let src_path = caps.name("path").unwrap().as_str().to_string();
     let snippet_name = caps.name("name").map(|m| m.as_str().to_string());
 
-    let (_, fence_line) = lines.next().ok_or(SnipsError::MissingCodeFence(idx + 1))?;
+    let (fence_idx, fence_line) = lines.next().ok_or(SnipsError::MissingCodeFence(idx + 1))?;
     let trimmed = fence_line.trim_start();
     if !trimmed.starts_with("```") {
         return Err(SnipsError::MissingCodeFence(idx + 1));
@@ -245,18 +266,22 @@ fn parse_snippet_block(
     let mut old_content_lines = Vec::new();
     for (_, inner) in lines.by_ref() {
         if inner.trim() == closing {
-            break;
+            return Ok(ParsedSnippet {
+                indent,
+                fence_len: tick_count,
+                locator: SnippetLocator {
+                    path: src_path,
+                    name: snippet_name,
+                },
+                old_content: old_content_lines.join("\n"),
+            });
         }
         old_content_lines.push(inner.to_string());
     }
 
-    Ok(ParsedSnippet {
-        indent,
-        locator: SnippetLocator {
-            path: src_path,
-            name: snippet_name,
-        },
-        old_content: old_content_lines.join("\n"),
+    Err(SnipsError::UnterminatedCodeFence {
+        file: file_path.to_path_buf(),
+        start_line: fence_idx + 1,
     })
 }
 
