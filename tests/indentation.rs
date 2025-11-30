@@ -3,26 +3,15 @@
 /// Verify indentation is preserved when rendering snippets.
 #[cfg(test)]
 mod tests {
+    #[allow(dead_code, missing_docs)]
+    mod support {
+        include!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/support/mod.rs"));
+    }
+
     use snips::sync_snippets_in_file;
     use std::fs::{self, File};
     use std::io::Write;
-    use std::path::Path;
-
-    // Helper to write a source file with a snippet
-    fn write_source_with_snippet(path: &Path, name: &str, content: &str) {
-        let mut f = File::create(path).unwrap();
-        writeln!(f, "// Some code before").unwrap();
-        writeln!(f, "// snips-start: {name}").unwrap();
-        write!(f, "{content}").unwrap();
-        writeln!(f, "// snips-end: {name}").unwrap();
-        writeln!(f, "// Some code after").unwrap();
-    }
-
-    // Helper to write a whole source file
-    fn write_source_file(path: &Path, content: &str) {
-        let mut f = File::create(path).unwrap();
-        write!(f, "{content}").unwrap();
-    }
+    use support::{write_source_file, write_source_with_snippet};
 
     #[test]
     fn indented_marker_with_spaces() {

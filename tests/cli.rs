@@ -3,10 +3,15 @@
 /// Validate CLI behavior in various modes.
 #[cfg(test)]
 mod tests {
+    #[allow(dead_code, missing_docs)]
+    mod support {
+        include!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/support/mod.rs"));
+    }
+
     use assert_cmd::{Command, cargo::cargo_bin_cmd};
-    use std::fs::{self, File};
-    use std::io::Write;
-    use std::path::{Path, PathBuf};
+    use std::fs;
+    use std::path::Path;
+    use support::make_example;
 
     fn snips_cmd() -> Command {
         cargo_bin_cmd!("snips")
@@ -16,18 +21,6 @@ mod tests {
         let mut cmd = snips_cmd();
         cmd.current_dir(path);
         cmd
-    }
-
-    fn make_example(dir: &tempfile::TempDir) -> PathBuf {
-        let code = dir.path().join("code.rs");
-        fs::write(&code, "fn main(){}\n").unwrap();
-        let md = dir.path().join("README.md");
-        let mut f = File::create(&md).unwrap();
-        writeln!(f, "<!-- snips: code.rs -->").unwrap();
-        writeln!(f, "```").unwrap();
-        writeln!(f, "old").unwrap();
-        writeln!(f, "```").unwrap();
-        md
     }
 
     #[test]

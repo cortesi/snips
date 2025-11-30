@@ -56,8 +56,7 @@ fn print_diff(old: &str, new: &str) {
 fn is_markdown(path: &Path) -> bool {
     path.extension()
         .and_then(|ext| ext.to_str())
-        .map(|ext| matches!(ext.to_ascii_lowercase().as_str(), "md" | "markdown"))
-        .unwrap_or(false)
+        .is_some_and(|ext| matches!(ext.to_ascii_lowercase().as_str(), "md" | "markdown"))
 }
 
 /// Convert `path` to a string relative to `cwd` when possible.

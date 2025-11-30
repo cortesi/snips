@@ -83,22 +83,22 @@ struct ParsedSnippet {
 }
 
 /// Apply indentation to every non-blank line in `content`.
-fn apply_indentation(content: &str, indent: &str) -> String {
+fn apply_indentation(content: String, indent: &str) -> String {
     if indent.is_empty() {
-        content.to_string()
-    } else {
-        content
-            .lines()
-            .map(|line| {
-                if line.trim().is_empty() {
-                    line.to_string()
-                } else {
-                    format!("{indent}{line}")
-                }
-            })
-            .collect::<Vec<_>>()
-            .join("\n")
+        return content;
     }
+
+    content
+        .lines()
+        .map(|line| {
+            if line.trim().is_empty() {
+                line.to_string()
+            } else {
+                format!("{indent}{line}")
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 /// Process a single markdown file and optionally write updates in place.
@@ -172,7 +172,7 @@ fn compute_diffs(
             let (new_content, _) = snippet.resolve()?;
 
             // Apply the same indentation to new_content as process_content does
-            let new_content_with_indent = apply_indentation(&new_content, &parsed.indent);
+            let new_content_with_indent = apply_indentation(new_content, &parsed.indent);
 
             if parsed.old_content.trim() != new_content_with_indent.trim() {
                 diffs.push(SnippetDiff {
@@ -222,7 +222,7 @@ fn inject_snippet_content(
             } else {
                 out.push(format!("{indent}{fence}{lang_hint}"));
             }
-            let rendered_snippet = apply_indentation(&code, indent);
+            let rendered_snippet = apply_indentation(code, indent);
             let updated = parsed.old_content.trim() != rendered_snippet.trim();
             snippets.push(SnippetReport {
                 locator: parsed.locator.clone(),

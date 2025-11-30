@@ -3,28 +3,15 @@
 /// Validate expected behavior across the documented spec cases.
 #[cfg(test)]
 mod tests {
+    #[allow(dead_code, missing_docs)]
+    mod support {
+        include!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/support/mod.rs"));
+    }
+
     use snips::{SnipsError, sync_snippets_in_file};
     use std::fs::{self, File};
     use std::io::Write;
-    use std::path::Path;
-
-    // Helper to write a markdown with marker and code fence
-    fn write_marker(path: &Path, marker: &str) {
-        let mut f = File::create(path).unwrap();
-        writeln!(f, "{marker}").unwrap();
-        writeln!(f, "```").unwrap();
-        writeln!(f, "old").unwrap();
-        writeln!(f, "```").unwrap();
-    }
-
-    // Helper to write a markdown with trailing spaces on the closing fence
-    fn write_marker_trailing(path: &Path, marker: &str, spaces: &str) {
-        let mut f = File::create(path).unwrap();
-        writeln!(f, "{marker}").unwrap();
-        writeln!(f, "```").unwrap();
-        writeln!(f, "old").unwrap();
-        writeln!(f, "```{spaces}").unwrap();
-    }
+    use support::{write_marker, write_marker_with_suffix};
 
     #[test]
     fn relative_path_resolution() {
@@ -52,7 +39,15 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
         match sync_snippets_in_file(&md_path, false) {
-            Err(SnipsError::InvalidMarker { .. }) => (),
+            Err(SnipsError::InvalidMarker {
+                file,
+                line,
+                content,
+            }) => {
+                assert_eq!(file, md_path);
+                assert_eq!(line, 1);
+                assert_eq!(content, "<!-- snips: -->");
+            }
             other => panic!("unexpected {other:?}"),
         }
     }
@@ -212,7 +207,7 @@ mod tests {
         let code_path = dir.path().join("code.rs");
         fs::write(&code_path, "fn main(){}\n").unwrap();
         let md_path = dir.path().join("doc.md");
-        write_marker_trailing(&md_path, "<!-- snips: code.rs -->", "   ");
+        write_marker_with_suffix(&md_path, "<!-- snips: code.rs -->", "   ");
         sync_snippets_in_file(&md_path, true).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("fn main(){}"));
