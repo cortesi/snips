@@ -64,7 +64,7 @@ mod tests {
 
         for diff in &diffs {
             println!("Diff found:");
-            println!("  Path: {}", diff.path);
+            println!("  Path: {}", diff.path.display());
             println!("  Old content: {:?}", diff.old_content);
             println!("  New content: {:?}", diff.new_content);
             println!("  Old trimmed: {:?}", diff.old_content.trim());

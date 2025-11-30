@@ -10,7 +10,7 @@ use textwrap::dedent;
 pub(crate) const SNIPPET_ID_CHARS: &str = r"[\w-]";
 
 /// A snippet reference made up of a source path and an optional named section.
-pub struct SnippetRef {
+pub(crate) struct SnippetRef {
     /// Path to the source file that contains the snippet.
     pub path: PathBuf,
     /// Name of the snippet within the file, if one is specified.

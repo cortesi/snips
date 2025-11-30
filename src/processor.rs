@@ -5,14 +5,14 @@ use regex::Regex;
 use std::fs;
 use std::io::ErrorKind;
 use std::iter::Enumerate;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str::Lines;
 
 /// A difference between existing markdown content and the current snippet content.
 #[derive(Debug)]
 pub struct SnippetDiff {
     /// Snippet source path relative to the markdown file.
-    pub path: String,
+    pub path: PathBuf,
     /// Optional snippet name inside the source file.
     pub name: Option<String>,
     /// Content currently present in the markdown file.
@@ -25,7 +25,7 @@ pub struct SnippetDiff {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SnippetLocator {
     /// Snippet source path relative to the markdown file.
-    pub path: String,
+    pub path: PathBuf,
     /// Optional snippet name inside the source file.
     pub name: Option<String>,
 }
@@ -33,9 +33,10 @@ pub struct SnippetLocator {
 impl SnippetLocator {
     /// Render the locator in marker form (e.g., `path/to/file#name`).
     pub fn marker(&self) -> String {
+        let path = self.path.to_string_lossy();
         match &self.name {
-            Some(name) => format!("{}#{name}", self.path),
-            None => self.path.clone(),
+            Some(name) => format!("{path}#{name}"),
+            None => path.into_owned(),
         }
     }
 }
@@ -206,10 +207,11 @@ fn inject_snippet_content(
             };
             let (code, lang) = snippet.resolve()?;
             let indent = parsed.indent.as_str();
+            let path_display = parsed.locator.path.to_string_lossy();
             let marker = if let Some(name) = &parsed.locator.name {
-                format!("{indent}<!-- snips: {}#{name} -->", parsed.locator.path)
+                format!("{indent}<!-- snips: {path_display}#{name} -->")
             } else {
-                format!("{indent}<!-- snips: {} -->", parsed.locator.path)
+                format!("{indent}<!-- snips: {path_display} -->")
             };
             out.push(marker);
 
@@ -252,7 +254,10 @@ fn parse_snippet_block(
         content: line.to_string(),
     })?;
     let indent = caps.name("indent").unwrap().as_str().to_string();
-    let src_path = caps.name("path").unwrap().as_str().to_string();
+    let src_path = caps
+        .name("path")
+        .map(|m| PathBuf::from(m.as_str()))
+        .unwrap();
     let snippet_name = caps.name("name").map(|m| m.as_str().to_string());
 
     let (fence_idx, fence_line) = lines.next().ok_or(SnipsError::MissingCodeFence(idx + 1))?;

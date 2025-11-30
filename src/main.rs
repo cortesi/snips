@@ -159,10 +159,11 @@ fn run() -> Result<(), Box<dyn Error>> {
                 let diffs = diff_file(path)?;
                 if !diffs.is_empty() {
                     for diff in diffs {
+                        let path_display = diff.path.to_string_lossy();
                         let name_display = if let Some(name) = &diff.name {
-                            format!("{}#{}", diff.path, name)
+                            format!("{path_display}#{name}")
                         } else {
-                            diff.path.clone()
+                            path_display.into_owned()
                         };
                         println!("--- {name_display}");
                         println!("+++ {name_display}");
