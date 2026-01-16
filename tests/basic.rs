@@ -9,12 +9,14 @@ mod tests {
         path::Path,
     };
 
-    use snips::{SnipsError, sync_snippets_in_file};
+    use snips::{CommandPolicy, SnipsError, sync_snippets_in_file};
+
+    const COMMAND_POLICY: CommandPolicy = CommandPolicy::Deny;
 
     #[test]
     fn missing_markdown_file() {
         let path = Path::new("nope.md");
-        match sync_snippets_in_file(path, false) {
+        match sync_snippets_in_file(path, false, COMMAND_POLICY) {
             Err(SnipsError::FileNotFound { file, .. }) => assert_eq!(file, path),
             _ => panic!("expected file not found"),
         }
@@ -32,7 +34,7 @@ mod tests {
         writeln!(f, "old").unwrap();
         writeln!(f, "```").unwrap();
         drop(f);
-        match sync_snippets_in_file(&md_path, false) {
+        match sync_snippets_in_file(&md_path, false, COMMAND_POLICY) {
             Err(SnipsError::SnippetNotFound {
                 file, snippet_name, ..
             }) => {
@@ -59,7 +61,7 @@ mod tests {
         writeln!(f, "old").unwrap();
         writeln!(f, "```").unwrap();
         drop(f);
-        sync_snippets_in_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true, COMMAND_POLICY).unwrap();
         let new_content = fs::read_to_string(&md_path).unwrap();
         assert!(new_content.contains("fn a() {\n    println!(\"hi\");\n}"));
     }
@@ -78,7 +80,7 @@ mod tests {
         writeln!(f, "<!-- snips: code.rs#foo -->").unwrap();
         writeln!(f, "not a fence").unwrap();
         drop(f);
-        match sync_snippets_in_file(&md_path, false) {
+        match sync_snippets_in_file(&md_path, false, COMMAND_POLICY) {
             Err(SnipsError::MissingCodeFence(_)) => (),
             other => panic!("unexpected {other:?}"),
         }
@@ -100,7 +102,7 @@ mod tests {
         writeln!(f, "old").unwrap();
         drop(f);
 
-        match sync_snippets_in_file(&md_path, false) {
+        match sync_snippets_in_file(&md_path, false, COMMAND_POLICY) {
             Err(SnipsError::UnterminatedCodeFence { file, start_line }) => {
                 assert_eq!(file, md_path);
                 assert_eq!(start_line, 2);
@@ -126,7 +128,7 @@ mod tests {
         writeln!(f, "````").unwrap();
         drop(f);
 
-        sync_snippets_in_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true, COMMAND_POLICY).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
         assert!(content.contains("````rust"));
         assert!(content.contains("fn a() {}"));

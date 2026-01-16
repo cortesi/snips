@@ -28,8 +28,9 @@ Markdown files, ensuring your code examples are always up-to-date.
     }
     ```
 
-2.  **In your Markdown file**, reference snippets using an HTML comment:
-
+2.  **In your Markdown file**, reference snippets on a Markdown block using an
+    HTML comment. Here, we're using a code block:   
+ 
 ````markdown
 <!-- snips: examples/example.rs#main_feature -->
 ```rust
@@ -50,6 +51,10 @@ all contained snippets.
   * **Named Snippets**: Pull specific blocks of code from any source file.
   * **Whole-File Insertion**: Embed an entire source file with a simple marker
     (`<!-- snips: path/to/file.rs -->`).
+  * **Header-Scoped Replacements**: Place a marker directly before a Markdown
+    header to replace the entire section body.
+  * **Command-Driven Blocks**: Use `<!-- snips: !command -->` to replace content
+    with the stdout of a command.
   * **CI/CD Friendly**: The `--check` flag exits with non-zero status if docs
     are out of sync, making it perfect for CI pipelines.
   * **Language Agnostic**: Works with any programming language that supports
@@ -92,7 +97,52 @@ in the current directory.
 
   * `--quiet` - Suppress output.
 
+  * `--commands <allow|prompt|deny>` - Control whether `snips` is allowed to run
+    command-based markers (defaults to `prompt`).
+
 -----
+
+## Generated Sections
+
+### CLI Help
+
+<!-- snips: !cargo run -- --help -->
+```rust
+Keep code snippets in markdown files in sync
+
+Usage: snips [OPTIONS] [FILES]...
+
+Arguments:
+  [FILES]...
+          Files to process; defaults to all markdown files in the current directory when omitted
+
+Options:
+      --quiet
+          Quiet mode
+
+      --check
+          Check mode: don't write changes, exit with error if files are out of sync
+
+      --diff
+          Show diff of changes
+
+      --commands <COMMANDS>
+          How to handle command markers
+
+          Possible values:
+          - allow:  Always run commands
+          - prompt: Prompt before running commands
+          - deny:   Never run commands
+          
+          [default: prompt]
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+```
 
 ## Related Projects
 

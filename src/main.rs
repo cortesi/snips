@@ -13,7 +13,8 @@ use std::{
 use clap::Parser;
 use owo_colors::OwoColorize;
 use snips::{
-    RenderSummary, SnippetReport, SnipsError, diff_file, sync_snippets_in_file_with_summary,
+    CommandPolicy, RenderSummary, SnippetReport, SnipsError, diff_file,
+    sync_snippets_in_file_with_summary,
 };
 
 /// Available operating modes for the CLI.
@@ -40,9 +41,33 @@ struct Cli {
     /// Show diff of changes
     #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "check")]
     diff: bool,
+    /// How to handle command markers.
+    #[arg(long, value_enum, default_value_t = CommandMode::Prompt)]
+    commands: CommandMode,
     /// Files to process; defaults to all markdown files in the current directory when omitted.
     #[arg(num_args = 0..)]
     files: Vec<PathBuf>,
+}
+
+/// CLI-facing command execution modes.
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+enum CommandMode {
+    /// Always run commands.
+    Allow,
+    /// Prompt before running commands.
+    Prompt,
+    /// Never run commands.
+    Deny,
+}
+
+impl From<CommandMode> for CommandPolicy {
+    fn from(value: CommandMode) -> Self {
+        match value {
+            CommandMode::Allow => Self::Allow,
+            CommandMode::Prompt => Self::Prompt,
+            CommandMode::Deny => Self::Deny,
+        }
+    }
 }
 
 /// Show a unified diff between two string slices.
@@ -115,6 +140,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     } else {
         Mode::Render { check: cli.check }
     };
+    let command_policy = CommandPolicy::from(cli.commands);
 
     let cwd = env::current_dir()?;
     let files = resolve_files(&cli.files)?;
@@ -123,7 +149,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         Mode::Render { check } => {
             let mut any_updated = false;
             for path in &files {
-                let summary: RenderSummary = sync_snippets_in_file_with_summary(path, !check)?;
+                let summary: RenderSummary =
+                    sync_snippets_in_file_with_summary(path, !check, command_policy)?;
                 let file_updated = summary.snippets.iter().any(|s| s.updated);
                 any_updated = any_updated || file_updated;
 
@@ -161,15 +188,10 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
         Mode::Diff => {
             for path in &files {
-                let diffs = diff_file(path)?;
+                let diffs = diff_file(path, command_policy)?;
                 if !diffs.is_empty() {
                     for diff in diffs {
-                        let path_display = diff.path.to_string_lossy();
-                        let name_display = if let Some(name) = &diff.name {
-                            format!("{path_display}#{name}")
-                        } else {
-                            path_display.into_owned()
-                        };
+                        let name_display = diff.locator.marker();
                         println!("--- {name_display}");
                         println!("+++ {name_display}");
                         print_diff(&diff.old_content, &diff.new_content);

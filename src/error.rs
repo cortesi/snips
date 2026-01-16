@@ -36,7 +36,7 @@ pub enum SnipsError {
     },
     /// A marker does not match the expected syntax.
     #[error(
-        "invalid marker format in {file}:{line}\n  {content}\n  Expected format: <!-- snips: path/to/file.ext --> or <!-- snips: path/to/file.ext#snippet_name -->"
+        "invalid marker format in {file}:{line}\n  {content}\n  Expected format: <!-- snips: path/to/file.ext -->, <!-- snips: path/to/file.ext#snippet_name -->, or <!-- snips: !command -->"
     )]
     InvalidMarker {
         /// Markdown file containing the invalid marker.
@@ -61,6 +61,43 @@ pub enum SnipsError {
     /// A snippet start marker was found without a matching end marker.
     #[error("unterminated snippet `{1}` in {0}")]
     UnterminatedSnippet(PathBuf, String),
+    /// Command execution was disabled by policy.
+    #[error("command execution disabled: {command}")]
+    CommandExecutionDisabled {
+        /// Command that was blocked.
+        command: String,
+    },
+    /// Command execution was denied by the user.
+    #[error("command execution denied: {command}")]
+    CommandExecutionDenied {
+        /// Command that was denied.
+        command: String,
+    },
+    /// Prompting for command execution was not possible.
+    #[error("command execution requires confirmation but stdin is not interactive: {command}")]
+    CommandConfirmationUnavailable {
+        /// Command awaiting confirmation.
+        command: String,
+    },
+    /// Spawning a command failed.
+    #[error("failed to execute command `{command}`: {source}")]
+    CommandSpawnFailed {
+        /// Command that failed to start.
+        command: String,
+        /// Underlying IO error.
+        #[source]
+        source: io::Error,
+    },
+    /// Command returned a non-zero exit status.
+    #[error("command `{command}` failed with status {status}: {stderr}")]
+    CommandFailed {
+        /// Command that returned non-zero.
+        command: String,
+        /// Exit status description.
+        status: String,
+        /// Captured stderr output (may be empty).
+        stderr: String,
+    },
     /// No markdown files were found in the working directory.
     #[error("no markdown files found in {0}")]
     NoMarkdownFiles(PathBuf),

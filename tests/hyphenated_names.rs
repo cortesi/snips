@@ -9,7 +9,9 @@ mod tests {
         path::Path,
     };
 
-    use snips::{SnipsError, sync_snippets_in_file};
+    use snips::{CommandPolicy, SnipsError, sync_snippets_in_file};
+
+    const COMMAND_POLICY: CommandPolicy = CommandPolicy::Deny;
 
     /// Helper to build a source file containing a single hyphenated snippet.
     fn write_source_with_hyphenated_snippet(path: &Path, name: &str, content: &str) {
@@ -41,7 +43,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        sync_snippets_in_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true, COMMAND_POLICY).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify the snippet was processed correctly
@@ -86,7 +88,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        sync_snippets_in_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true, COMMAND_POLICY).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify all snippet styles work
@@ -116,7 +118,7 @@ mod tests {
         writeln!(f, "   ```").unwrap();
         drop(f);
 
-        sync_snippets_in_file(&md_path, true).unwrap();
+        sync_snippets_in_file(&md_path, true, COMMAND_POLICY).unwrap();
         let content = fs::read_to_string(&md_path).unwrap();
 
         // Verify indented hyphenated snippet works
@@ -138,7 +140,7 @@ mod tests {
         writeln!(f, "```").unwrap();
         drop(f);
 
-        match sync_snippets_in_file(&md_path, false) {
+        match sync_snippets_in_file(&md_path, false, COMMAND_POLICY) {
             Err(SnipsError::SnippetNotFound {
                 snippet_name,
                 available_snippets,

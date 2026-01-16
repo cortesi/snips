@@ -11,6 +11,6 @@ pub mod snippet;
 
 pub use error::SnipsError;
 pub use processor::{
-    RenderSummary, SnippetDiff, SnippetLocator, SnippetReport, diff_file, sync_snippets_in_file,
-    sync_snippets_in_file_with_summary,
+    CommandPolicy, RenderSummary, SnippetDiff, SnippetLocator, SnippetReport, diff_file,
+    sync_snippets_in_file, sync_snippets_in_file_with_summary,
 };

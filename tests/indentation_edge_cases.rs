@@ -9,7 +9,9 @@ mod tests {
         path::Path,
     };
 
-    use snips::{diff_file, sync_snippets_in_file};
+    use snips::{CommandPolicy, diff_file, sync_snippets_in_file};
+
+    const COMMAND_POLICY: CommandPolicy = CommandPolicy::Deny;
 
     // Helper to write a source file with indented content
     fn write_indented_source(path: &Path, content: &str) {
@@ -58,16 +60,16 @@ mod tests {
         );
 
         // First, check if render makes any changes
-        let render_result = sync_snippets_in_file(&md_path, false).unwrap();
+        let render_result = sync_snippets_in_file(&md_path, false, COMMAND_POLICY).unwrap();
         println!("Render result (should be None): {:?}", render_result);
 
         // Check what diff reports
-        let diffs = diff_file(&md_path).unwrap();
+        let diffs = diff_file(&md_path, COMMAND_POLICY).unwrap();
         println!("Number of diffs found: {}", diffs.len());
 
         for diff in &diffs {
             println!("Diff found:");
-            println!("  Path: {}", diff.path.display());
+            println!("  Marker: {}", diff.locator.marker());
             println!("  Old content: {:?}", diff.old_content);
             println!("  New content: {:?}", diff.new_content);
             println!("  Old trimmed: {:?}", diff.old_content.trim());
@@ -116,8 +118,8 @@ mod tests {
             );
 
             // Test render consistency
-            let render_result1 = sync_snippets_in_file(&md_path, false).unwrap();
-            let render_result2 = sync_snippets_in_file(&md_path, false).unwrap();
+            let render_result1 = sync_snippets_in_file(&md_path, false, COMMAND_POLICY).unwrap();
+            let render_result2 = sync_snippets_in_file(&md_path, false, COMMAND_POLICY).unwrap();
 
             assert_eq!(
                 render_result1, render_result2,
@@ -125,8 +127,8 @@ mod tests {
             );
 
             // Test diff consistency
-            let diffs1 = diff_file(&md_path).unwrap();
-            let diffs2 = diff_file(&md_path).unwrap();
+            let diffs1 = diff_file(&md_path, COMMAND_POLICY).unwrap();
+            let diffs2 = diff_file(&md_path, COMMAND_POLICY).unwrap();
 
             assert_eq!(
                 diffs1.len(),
@@ -168,9 +170,9 @@ mod tests {
         // Test multiple render passes
         let content_before = fs::read_to_string(&md_path).unwrap();
 
-        let render1 = sync_snippets_in_file(&md_path, false).unwrap();
-        let render2 = sync_snippets_in_file(&md_path, false).unwrap();
-        let render3 = sync_snippets_in_file(&md_path, false).unwrap();
+        let render1 = sync_snippets_in_file(&md_path, false, COMMAND_POLICY).unwrap();
+        let render2 = sync_snippets_in_file(&md_path, false, COMMAND_POLICY).unwrap();
+        let render3 = sync_snippets_in_file(&md_path, false, COMMAND_POLICY).unwrap();
 
         let content_after = fs::read_to_string(&md_path).unwrap();
 
@@ -185,7 +187,7 @@ mod tests {
         assert_eq!(render2, render3, "Second and third render should agree");
 
         // Test diff consistency
-        let diffs = diff_file(&md_path).unwrap();
+        let diffs = diff_file(&md_path, COMMAND_POLICY).unwrap();
 
         if render1.is_none() {
             assert!(
@@ -226,8 +228,8 @@ mod tests {
         drop(f);
 
         // Test render and diff consistency
-        let render_result = sync_snippets_in_file(&md_path, false).unwrap();
-        let diffs = diff_file(&md_path).unwrap();
+        let render_result = sync_snippets_in_file(&md_path, false, COMMAND_POLICY).unwrap();
+        let diffs = diff_file(&md_path, COMMAND_POLICY).unwrap();
 
         println!("Empty lines test - render result: {:?}", render_result);
         println!("Empty lines test - diffs: {}", diffs.len());
@@ -270,8 +272,8 @@ mod tests {
         );
 
         for (name, path) in [("tabs", &md_path_tabs), ("spaces", &md_path_spaces)] {
-            let render_result = sync_snippets_in_file(path, false).unwrap();
-            let diffs = diff_file(path).unwrap();
+            let render_result = sync_snippets_in_file(path, false, COMMAND_POLICY).unwrap();
+            let diffs = diff_file(path, COMMAND_POLICY).unwrap();
 
             println!("{name} test - render result: {:?}", render_result);
             println!("{name} test - diffs: {}", diffs.len());
@@ -306,8 +308,8 @@ mod tests {
 
         // Test multiple iterations to ensure stability
         for i in 1..=5 {
-            let render_result = sync_snippets_in_file(&md_path, false).unwrap();
-            let diffs = diff_file(&md_path).unwrap();
+            let render_result = sync_snippets_in_file(&md_path, false, COMMAND_POLICY).unwrap();
+            let diffs = diff_file(&md_path, COMMAND_POLICY).unwrap();
 
             if render_result.is_none() {
                 assert!(
@@ -362,8 +364,8 @@ mod tests {
         drop(f);
 
         // Test render/diff consistency
-        let render_result = sync_snippets_in_file(&md_path, false).unwrap();
-        let diffs = diff_file(&md_path).unwrap();
+        let render_result = sync_snippets_in_file(&md_path, false, COMMAND_POLICY).unwrap();
+        let diffs = diff_file(&md_path, COMMAND_POLICY).unwrap();
 
         if render_result.is_none() {
             assert!(
