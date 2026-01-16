@@ -3,10 +3,13 @@
 /// Stress tests for nested and mixed indentation scenarios.
 #[cfg(test)]
 mod tests {
+    use std::{
+        fs::{self, File},
+        io::Write,
+        path::Path,
+    };
+
     use snips::{diff_file, sync_snippets_in_file};
-    use std::fs::{self, File};
-    use std::io::Write;
-    use std::path::Path;
 
     // Helper to write a source file with indented content
     fn write_indented_source(path: &Path, content: &str) {

@@ -3,10 +3,13 @@
 /// Group of basic snippet scenarios.
 #[cfg(test)]
 mod tests {
+    use std::{
+        fs::{self, File},
+        io::Write,
+        path::Path,
+    };
+
     use snips::{SnipsError, sync_snippets_in_file};
-    use std::fs::{self, File};
-    use std::io::Write;
-    use std::path::Path;
 
     #[test]
     fn missing_markdown_file() {

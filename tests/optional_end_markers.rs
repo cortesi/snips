@@ -3,10 +3,13 @@
 /// Ensure colonless and optional end markers behave as expected.
 #[cfg(test)]
 mod tests {
+    use std::{
+        fs::{self, File},
+        io::Write,
+        path::Path,
+    };
+
     use snips::sync_snippets_in_file;
-    use std::fs::{self, File};
-    use std::io::Write;
-    use std::path::Path;
 
     // Helper to write a source file with optional end marker
     fn write_source_with_optional_end(

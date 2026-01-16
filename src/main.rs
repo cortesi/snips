@@ -2,13 +2,19 @@
 
 //! Command-line interface for synchronizing snippets.
 
+use std::{
+    env,
+    error::Error,
+    fs,
+    path::{Path, PathBuf},
+    process,
+};
+
 use clap::Parser;
 use owo_colors::OwoColorize;
 use snips::{
     RenderSummary, SnippetReport, SnipsError, diff_file, sync_snippets_in_file_with_summary,
 };
-use std::path::{Path, PathBuf};
-use std::{env, error::Error, fs, process};
 
 /// Available operating modes for the CLI.
 enum Mode {

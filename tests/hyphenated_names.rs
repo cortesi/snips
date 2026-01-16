@@ -3,10 +3,13 @@
 /// Exercises handling of hyphenated snippet names across contexts.
 #[cfg(test)]
 mod tests {
+    use std::{
+        fs::{self, File},
+        io::Write,
+        path::Path,
+    };
+
     use snips::{SnipsError, sync_snippets_in_file};
-    use std::fs::{self, File};
-    use std::io::Write;
-    use std::path::Path;
 
     /// Helper to build a source file containing a single hyphenated snippet.
     fn write_source_with_hyphenated_snippet(path: &Path, name: &str, content: &str) {

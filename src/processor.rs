@@ -1,12 +1,18 @@
-use crate::error::SnipsError;
-use crate::snippet::{SNIPPET_ID_CHARS, SnippetRef};
+use std::{
+    fs,
+    io::ErrorKind,
+    iter::Enumerate,
+    path::{Path, PathBuf},
+    str::Lines,
+};
+
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::fs;
-use std::io::ErrorKind;
-use std::iter::Enumerate;
-use std::path::{Path, PathBuf};
-use std::str::Lines;
+
+use crate::{
+    error::SnipsError,
+    snippet::{SNIPPET_ID_CHARS, SnippetRef},
+};
 
 /// A difference between existing markdown content and the current snippet content.
 #[derive(Debug)]

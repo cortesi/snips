@@ -8,9 +8,9 @@ mod tests {
         include!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/support/mod.rs"));
     }
 
+    use std::{fs, path::Path};
+
     use assert_cmd::{Command, cargo::cargo_bin_cmd};
-    use std::fs;
-    use std::path::Path;
     use support::make_example;
 
     fn snips_cmd() -> Command {

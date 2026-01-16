@@ -8,9 +8,12 @@ mod tests {
         include!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/support/mod.rs"));
     }
 
+    use std::{
+        fs::{self, File},
+        io::Write,
+    };
+
     use snips::{SnipsError, sync_snippets_in_file};
-    use std::fs::{self, File};
-    use std::io::Write;
     use support::{write_marker, write_marker_with_suffix};
 
     #[test]

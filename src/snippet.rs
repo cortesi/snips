@@ -1,10 +1,14 @@
-use crate::error::SnipsError;
+use std::{
+    fs,
+    io::ErrorKind,
+    path::{Path, PathBuf},
+};
+
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::fs;
-use std::io::ErrorKind;
-use std::path::{Path, PathBuf};
 use textwrap::dedent;
+
+use crate::error::SnipsError;
 
 /// Allowed characters for snippet identifiers.
 pub(crate) const SNIPPET_ID_CHARS: &str = r"[\w-]";
