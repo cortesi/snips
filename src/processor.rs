@@ -616,6 +616,27 @@ fn resolve_snippet(
     }
 }
 
+/// Strip leading and trailing blank lines from `content`.
+fn strip_outer_blank_lines(content: &str) -> String {
+    let lines: Vec<&str> = content.split('\n').collect();
+    let mut start = 0;
+    let mut end = lines.len();
+
+    while start < end && lines[start].trim().is_empty() {
+        start += 1;
+    }
+
+    while end > start && lines[end - 1].trim().is_empty() {
+        end -= 1;
+    }
+
+    if start >= end {
+        return String::new();
+    }
+
+    lines[start..end].join("\n")
+}
+
 /// Run a command and return its stdout.
 fn run_command(
     command: &str,
@@ -664,7 +685,8 @@ fn run_command(
         });
     }
 
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    Ok(strip_outer_blank_lines(&stdout))
 }
 
 /// Confirm command execution when running in prompt mode.
@@ -719,4 +741,28 @@ struct MarkerLine {
     indent: String,
     /// Parsed snippet locator.
     locator: SnippetLocator,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::strip_outer_blank_lines;
+
+    #[test]
+    fn strip_outer_blank_lines_removes_surrounding_whitespace() {
+        let input = "\n\nLine A\n\nLine B\n\n";
+        let expected = "Line A\n\nLine B";
+        assert_eq!(strip_outer_blank_lines(input), expected);
+    }
+
+    #[test]
+    fn strip_outer_blank_lines_handles_all_blank_content() {
+        let input = " \n\t\n";
+        assert!(strip_outer_blank_lines(input).is_empty());
+    }
+
+    #[test]
+    fn strip_outer_blank_lines_preserves_non_blank_content() {
+        let input = "Line A\nLine B";
+        assert_eq!(strip_outer_blank_lines(input), input);
+    }
 }
