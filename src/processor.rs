@@ -24,7 +24,8 @@ pub enum CommandPolicy {
     Deny,
 }
 
-/// A difference between existing markdown content and the current snippet content.
+/// A difference between existing markdown content and the current snippet
+/// content.
 #[derive(Debug)]
 pub struct SnippetDiff {
     /// Snippet marker source.
@@ -53,7 +54,8 @@ pub enum SnippetLocator {
 }
 
 impl SnippetLocator {
-    /// Render the locator in marker form (e.g., `path/to/file#name` or `!command`).
+    /// Render the locator in marker form (e.g., `path/to/file#name` or
+    /// `!command`).
     pub fn marker(&self) -> String {
         match self {
             Self::File { path, name } => {
@@ -226,7 +228,8 @@ pub fn sync_snippets_in_file(
     Ok(sync_snippets_in_file_with_summary(path, write, command_policy)?.rendered)
 }
 
-/// Process a single markdown file, returning snippet metadata alongside changes.
+/// Process a single markdown file, returning snippet metadata alongside
+/// changes.
 pub fn sync_snippets_in_file_with_summary(
     path: &Path,
     write: bool,
@@ -275,7 +278,8 @@ pub fn diff_file(
     compute_diffs(&content, base, path, command_policy)
 }
 
-/// Scan markdown content for snippet markers and compute diffs against source files.
+/// Scan markdown content for snippet markers and compute diffs against source
+/// files.
 fn compute_diffs(
     content: &str,
     base: &Path,

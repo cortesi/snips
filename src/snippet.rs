@@ -80,7 +80,8 @@ fn find_available_snippets(content: &str) -> Vec<String> {
     snippets
 }
 
-/// Extract a named snippet between matching start/end markers, respecting indentation.
+/// Extract a named snippet between matching start/end markers, respecting
+/// indentation.
 fn extract_named_snippet(content: &str, name: &str, path: &Path) -> Result<String, SnipsError> {
     let lines = content.lines();
     let mut found = false;

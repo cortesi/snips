@@ -21,7 +21,8 @@ use snips::{
 enum Mode {
     /// Render snippets into files, writing changes when needed.
     Render {
-        /// When true, files aren't written and exit non-zero if changes are needed.
+        /// When true, files aren't written and exit non-zero if changes are
+        /// needed.
         check: bool,
     },
     /// Display diffs between embedded snippets and sources.
@@ -35,7 +36,8 @@ struct Cli {
     /// Quiet mode
     #[arg(long, action = clap::ArgAction::SetTrue)]
     quiet: bool,
-    /// Check mode: don't write changes, exit with error if files are out of sync
+    /// Check mode: don't write changes, exit with error if files are out of
+    /// sync
     #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "diff")]
     check: bool,
     /// Show diff of changes
@@ -44,7 +46,8 @@ struct Cli {
     /// How to handle command markers.
     #[arg(long, value_enum, default_value_t = CommandMode::Prompt)]
     commands: CommandMode,
-    /// Files to process; defaults to all markdown files in the current directory when omitted.
+    /// Files to process; defaults to all markdown files in the current
+    /// directory when omitted.
     #[arg(num_args = 0..)]
     files: Vec<PathBuf>,
 }
@@ -95,7 +98,8 @@ fn relative_display(path: &Path, cwd: &Path) -> String {
     path.strip_prefix(cwd).unwrap_or(path).display().to_string()
 }
 
-/// Determine which files to operate on, defaulting to all markdown files in the CWD.
+/// Determine which files to operate on, defaulting to all markdown files in the
+/// CWD.
 fn resolve_files(cli_files: &[PathBuf]) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     if !cli_files.is_empty() {
         return Ok(cli_files.to_vec());

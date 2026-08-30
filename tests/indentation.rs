@@ -110,7 +110,8 @@ mod tests {
         // Verify the code fences are indented
         assert!(content.contains("   ```rust"));
         assert!(content.contains("   ```\n"));
-        // Verify the code content is indented (3 spaces from original + content indentation)
+        // Verify the code content is indented (3 spaces from original + content
+        // indentation)
         assert!(content.contains("   fn test() {"));
         assert!(content.contains("       println!(\"test\");"));
         assert!(content.contains("   }"));
@@ -173,7 +174,8 @@ mod tests {
 
         // Verify empty lines are preserved without adding indentation
         let lines: Vec<&str> = content.lines().collect();
-        // Look for the correctly indented line (original 4 space indent + content indentation)
+        // Look for the correctly indented line (original 4 space indent + content
+        // indentation)
         let empty_line_idx = lines
             .iter()
             .position(|&line| line == "        let x = 1;")
