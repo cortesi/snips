@@ -1,17 +1,17 @@
 //! CLI-level integration tests.
 
+#[allow(dead_code, missing_docs)]
+mod support;
+
 /// Validate CLI behavior in various modes.
 #[cfg(test)]
 mod tests {
-    #[allow(dead_code, missing_docs)]
-    mod support {
-        include!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/support/mod.rs"));
-    }
-
     use std::{fs, path::Path};
 
     use assert_cmd::{Command, cargo::cargo_bin_cmd};
     use support::make_example;
+
+    use super::support;
 
     fn snips_cmd() -> Command {
         cargo_bin_cmd!("snips")

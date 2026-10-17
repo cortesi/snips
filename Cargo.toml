@@ -61,6 +61,7 @@ assert_cmd = "2"
 schema-version = 1
 requires-nanocode = ">=0.1, <0.2"
 features = "all"
+cargo-release = "snips"
 
 [profile.dev]
 debug = "line-tables-only"

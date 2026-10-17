@@ -1,13 +1,11 @@
 //! Integration tests covering indentation handling.
 
+#[allow(dead_code, missing_docs)]
+mod support;
+
 /// Verify indentation is preserved when rendering snippets.
 #[cfg(test)]
 mod tests {
-    #[allow(dead_code, missing_docs)]
-    mod support {
-        include!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/support/mod.rs"));
-    }
-
     use std::{
         fs::{self, File},
         io::Write,
@@ -15,6 +13,8 @@ mod tests {
 
     use snips::{CommandPolicy, sync_snippets_in_file};
     use support::{write_source_file, write_source_with_snippet};
+
+    use super::support;
 
     const COMMAND_POLICY: CommandPolicy = CommandPolicy::Deny;
 
@@ -174,8 +174,8 @@ mod tests {
 
         // Verify empty lines are preserved without adding indentation
         let lines: Vec<&str> = content.lines().collect();
-        // Look for the correctly indented line (original 4 space indent + content
-        // indentation)
+        // Look for the correctly indented line (original 4 space indent +
+        // content indentation)
         let empty_line_idx = lines
             .iter()
             .position(|&line| line == "        let x = 1;")

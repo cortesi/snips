@@ -1,13 +1,11 @@
 //! Specification-style integration tests.
 
+#[allow(dead_code, missing_docs)]
+mod support;
+
 /// Validate expected behavior across the documented spec cases.
 #[cfg(test)]
 mod tests {
-    #[allow(dead_code, missing_docs)]
-    mod support {
-        include!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/support/mod.rs"));
-    }
-
     use std::{
         fs::{self, File},
         io::Write,
@@ -15,6 +13,8 @@ mod tests {
 
     use snips::{CommandPolicy, SnipsError, sync_snippets_in_file};
     use support::{write_marker, write_marker_with_suffix};
+
+    use super::support;
 
     const COMMAND_POLICY: CommandPolicy = CommandPolicy::Deny;
 
